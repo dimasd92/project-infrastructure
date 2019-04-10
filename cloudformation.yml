@@ -1,4 +1,10 @@
 ---
+Parameters:
+  SSHKeyName:
+    Description: The EC2 Key Pair to allow SSH access to the instances
+    Type: String
+    Default: demo
+
 AWSTemplateFormatVersion: '2010-09-09'
 Resources:
 
@@ -7,9 +13,9 @@ Resources:
     Type: AWS::EC2::VPC
     Properties:
       CidrBlock: 10.0.0.0/16
-      EnableDnsSupport: 'false'
-      EnableDnsHostnames: 'false'
-      InstanceTenancy: dedicated
+      EnableDnsSupport: 'true'
+      EnableDnsHostnames: 'true'
+      InstanceTenancy: default
       Tags:
       - Key: Name
         Value: Project
@@ -104,7 +110,7 @@ Resources:
       - IpProtocol: tcp
         FromPort: 22
         ToPort: 22
-        CidrIp: 10.0.0.0/16
+        CidrIp: 0.0.0.0/0
       - IpProtocol: tcp
         FromPort: 3306
         ToPort: 3306
@@ -112,3 +118,102 @@ Resources:
       Tags:
       - Key: Name
         Value: Private network
+
+  LaunchConfig:
+    Type: AWS::AutoScaling::LaunchConfiguration
+    Properties:
+      ImageId: ami-061392db613a6357b
+      UserData:
+        Fn::Base64:
+          Fn::Join:
+          - ''
+          - - "#!/bin/bash \n"
+            - 'sudo yum install -y docker.x86_64 &&\'
+            - 'sudo yum install -y https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm &&\'
+            - 'sudo yum install -y docker-compose.noarch &&\'
+            - 'sudo systemctl start docker &&\'
+            - 'sudo systemctl enable docker &&\'
+            - 'sudo usermod -aG docker ec2-user &&\'
+            - 'sudo reboot'
+      SecurityGroups:
+      - Ref: "InstanceSecurityGroup"
+      InstanceType: t2.micro
+      AssociatePublicIpAddress: true
+      KeyName:
+        Ref: SSHKeyName
+
+  ASG1:
+    UpdatePolicy:
+      AutoScalingRollingUpdate:
+        MinInstancesInService: "1"
+        MaxBatchSize: "1"
+        PauseTime: "PT12M5S"
+        WaitOnResourceSignals: "true"
+    Type: AWS::AutoScaling::AutoScalingGroup
+    DependsOn: myInternetGateway
+    Properties:
+      AvailabilityZones:
+        Fn::GetAZs: us-west-2a
+      VPCZoneIdentifier:
+      - Ref: mySubnet1
+      - Ref: mySubnet2
+      LaunchConfigurationName:
+        Ref: "LaunchConfig"
+      MaxSize: "3"
+      MinSize: "1"
+    LoadBalancerNames:
+      - Ref: "LoadBalancer"
+    MetricsCollection:
+      -
+        Granularity: "1Minute"
+        Metrics:
+          - "GroupMinSize"
+          - "GroupMaxSize"
+
+  LoadBalancer:
+    Type: AWS::ElasticLoadBalancingV2::LoadBalancer
+    Properties:
+      Name: Load
+      Subnets:
+      - Ref: mySubnet1
+      - Ref: mySubnet2
+      SecurityGroups:
+        - !Ref InstanceSecurityGroup
+      Tags:
+        - Key: Name
+          Value: LoadBalancer
+
+  LoadBalancerListener:
+    Type: AWS::ElasticLoadBalancingV2::Listener
+    Properties:
+      LoadBalancerArn: !Ref LoadBalancer
+      Port: 80
+      Protocol: HTTP
+      DefaultActions:
+        - Type: forward
+          TargetGroupArn: !Ref DefaultTargetGroup
+
+  # We define a default target group here, as this is a mandatory Parameters
+  # when creating an Application Load Balancer Listener. This is not used, instead
+  # a target group is created per-service in each service template (../services/*)
+  DefaultTargetGroup:
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    Properties:
+      Name: TargetGroup
+      VpcId:
+        Ref: myVPC
+      Port: 80
+      Protocol: HTTP
+
+Outputs:
+  LoadBalancer:
+    Description: A reference to the Application Load Balancer
+    Value: !Ref LoadBalancer
+
+  LoadBalancerUrl:
+    Description: The URL of the ALB
+    Value: !GetAtt LoadBalancer.DNSName
+
+  Listener:
+    Description: A reference to a port 80 listener
+    Value: !Ref LoadBalancerListener
