@@ -1,0 +1,74 @@
+---
+Parameters:
+  SSHKeyName:
+    Description: The EC2 Key Pair to allow SSH access to the instances
+    Type: String
+    Default: demo
+
+AWSTemplateFormatVersion: '2010-09-09'
+Resources:
+
+  TargetGroup:
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    Properties:
+      Name: Project
+      VpcId:
+        Fn::ImportValue: VPC
+      Port: 80
+      Protocol: HTTP
+      HealthCheckIntervalSeconds: 60
+      HealthCheckPath: /
+      HealthCheckProtocol: HTTP
+      HealthCheckTimeoutSeconds: 30
+      HealthyThresholdCount: 2
+      UnhealthyThresholdCount: 2
+
+  LoadBalancer:
+    Type: AWS::ElasticLoadBalancingV2::LoadBalancer
+    Properties:
+      Scheme: internet-facing
+      Subnets:
+      - Fn::ImportValue: SubnetPrivateA
+      - Fn::ImportValue: SubnetPrivateB
+      SecurityGroups:
+        - Fn::ImportValue: PublicSubnetSecurityGroup
+      LoadBalancerAttributes:
+      - Key: idle_timeout.timeout_seconds
+        Value: '30'
+      Tags:
+        - Key: Name
+          Value: LoadBalancer
+
+  LoadBalancerListener:
+    Type: AWS::ElasticLoadBalancingV2::Listener
+    Properties:
+      LoadBalancerArn: !Ref LoadBalancer
+      Port: 443
+      Protocol: HTTPS
+      Certificates:
+        - CertificateArn: arn:aws:acm:us-west-2:069312102029:certificate/44e7dd88-d930-4335-ad0f-f4fef4f3df87
+      DefaultActions:
+        - Type: forward
+          TargetGroupArn: !Ref TargetGroup
+
+  ECSALBListenerRule:
+    Type: AWS::ElasticLoadBalancingV2::ListenerRule
+    Properties:
+      Actions:
+      - Type: forward
+        TargetGroupArn: !Ref 'TargetGroup'
+      Conditions:
+      - Field: path-pattern
+        Values: [/]
+      ListenerArn: !Ref 'LoadBalancerListener'
+      Priority: 1
+
+Outputs:
+  TargetGroup:
+    Value: !Ref TargetGroup
+    Export:
+      Name: TargetGroup
+  LoadBalancerFullName:
+    Value: !GetAtt LoadBalancer.LoadBalancerFullName
+    Export:
+      Name: LoadBalancerFullName

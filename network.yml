@@ -1,0 +1,210 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Resources:
+  VPC:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: 10.0.0.0/16
+      EnableDnsSupport: 'true'
+      EnableDnsHostnames: 'true'
+      InstanceTenancy: default
+      Tags:
+      - Key: Name
+        Value: Project
+
+  SubnetPrivateA:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      CidrBlock: 10.0.0.0/24
+      AvailabilityZone: "us-west-2a"
+      Tags:
+      - Key: Name
+        Value: Private a
+
+  SubnetPrivateB:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      CidrBlock: 10.0.1.0/24
+      AvailabilityZone: "us-west-2b"
+      Tags:
+      - Key: Name
+        Value: Private b
+
+  SubnetPublicA:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      CidrBlock: 10.0.2.0/24
+      AvailabilityZone: "us-west-2a"
+      Tags:
+      - Key: Name
+        Value: Public a
+
+  SubnetPublicB:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      CidrBlock: 10.0.3.0/24
+      AvailabilityZone: "us-west-2b"
+      Tags:
+      - Key: Name
+        Value: Public b
+
+#####################################################
+#  ElasticIP:
+#      Type: AWS::EC2::EIP
+#      Properties:
+#        Domain: vpc
+
+#  NatGateway:
+#    Type: "AWS::EC2::NatGateway"
+#    Properties:
+#      AllocationId: !GetAtt ElasticIP.AllocationId
+#      SubnetId: !Ref SubnetPublicA
+
+  PrivateRouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref VPC
+      Tags:
+      - Key: Name
+        Value: Private subnet
+
+  PrivateRoute:
+    Type: AWS::EC2::Route
+    DependsOn: InternetGateway
+    Properties:
+      RouteTableId:
+        Ref: PrivateRouteTable
+      DestinationCidrBlock: 0.0.0.0/0 ##########################??????????????????????
+      GatewayId:
+        Ref: InternetGateway
+
+  SubnetPrivateRouteTableAssociationA:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref SubnetPrivateA
+      RouteTableId: !Ref PrivateRouteTable
+
+  SubnetPrivateRouteTableAssociationB:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref SubnetPrivateB
+      RouteTableId: !Ref PrivateRouteTable
+
+#####################################################
+  InternetGateway:
+    Type: AWS::EC2::InternetGateway
+    Properties:
+      Tags:
+      - Key: Name
+        Value: Project
+
+  AttachGateway:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      VpcId: !Ref VPC
+      InternetGatewayId:
+        Ref: InternetGateway
+
+  PublicRouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref VPC
+      Tags:
+      - Key: Name
+        Value: Public subnet
+
+  PublicRoute:
+    Type: AWS::EC2::Route
+    DependsOn: InternetGateway
+    Properties:
+      RouteTableId:
+        Ref: PublicRouteTable
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId:
+        Ref: InternetGateway
+
+  SubnetPublicRouteTableAssociationA:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref SubnetPublicA
+      RouteTableId:
+        Ref: PublicRouteTable
+
+  SubnetPublicRouteTableAssociationB:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref SubnetPublicB
+      RouteTableId:
+        Ref: PublicRouteTable
+
+#####################################################
+    ###   SecurityGroup   ###
+  PrivateSubnetSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Security group for private network
+      VpcId: !Ref VPC
+      SecurityGroupIngress:
+      - IpProtocol: tcp
+        FromPort: 80
+        ToPort: 80
+        CidrIp: 0.0.0.0/0
+      - IpProtocol: tcp
+        FromPort: 22
+        ToPort: 22
+        CidrIp: 0.0.0.0/0
+      - IpProtocol: tcp
+        FromPort: 31000
+        ToPort: 61000
+        CidrIp: 0.0.0.0/0
+      Tags:
+      - Key: Name
+        Value: Private network
+
+  PublicSubnetSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Security group for private network
+      VpcId: !Ref VPC
+      SecurityGroupIngress:
+      - IpProtocol: tcp
+        FromPort: 80
+        ToPort: 80
+        CidrIp: 0.0.0.0/0
+      - IpProtocol: tcp
+        FromPort: 443
+        ToPort: 443
+        CidrIp: 0.0.0.0/0
+      - IpProtocol: tcp
+        FromPort: 22
+        ToPort: 22
+        CidrIp: 0.0.0.0/0
+      Tags:
+      - Key: Name
+        Value: Public network
+
+########################################################
+Outputs:
+  VPC:
+    Value: !Ref VPC
+    Export:
+      Name: VPC
+  PrivateSubnetSecurityGroup:
+    Value: !Ref PrivateSubnetSecurityGroup
+    Export:
+      Name: PrivateSubnetSecurityGroup
+  PublicSubnetSecurityGroup:
+    Value: !Ref PublicSubnetSecurityGroup
+    Export:
+      Name: PublicSubnetSecurityGroup
+  SubnetPrivateA:
+    Value: !Ref SubnetPrivateA
+    Export:
+      Name: SubnetPrivateA
+  SubnetPrivateB:
+    Value: !Ref SubnetPrivateB
+    Export:
+      Name: SubnetPrivateB

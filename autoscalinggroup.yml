@@ -1,0 +1,96 @@
+---
+Parameters:
+  SSHKeyName:
+    Description: The EC2 Key Pair to allow SSH access to the instances
+    Type: String
+    Default: demo
+
+AWSTemplateFormatVersion: '2010-09-09'
+Resources:
+
+  EC2Role:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service: [ec2.amazonaws.com]
+          Action: ['sts:AssumeRole']
+      Path: /
+      Policies:
+      - PolicyName: ecs-service
+        PolicyDocument:
+          Statement:
+          - Effect: Allow
+            Action: ['ecs:CreateCluster', 'ecs:DeregisterContainerInstance', 'ecs:DiscoverPollEndpoint', ########################3
+              'ecs:Poll', 'ecs:RegisterContainerInstance', 'ecs:StartTelemetrySession',       ################33
+              'ecs:Submit*', 'logs:CreateLogStream', 'logs:PutLogEvents', 'ecr:*']   ##########################
+            Resource: '*'
+
+  EC2InstanceProfile:
+    Type: AWS::IAM::InstanceProfile
+    Properties:
+      Path: /
+      Roles:
+      - Ref: EC2Role
+
+  LaunchConfiguration:
+    Type: AWS::AutoScaling::LaunchConfiguration
+    Properties:
+      ImageId: ami-0302f3ec240b9d23c  ####### ami-061392db613a6357b
+      UserData:
+        Fn::Base64: !Sub |
+          #!/bin/bash -xe
+          echo ECS_CLUSTER=Project >> /etc/ecs/ecs.config   #??????????????????????????????????????????????
+          yum install -y aws-cfn-bootstrap
+          /opt/aws/bin/cfn-signal -e $? --stack ${AWS::StackName} --resource ASG --region ${AWS::Region}
+
+      SecurityGroups:
+      - Fn::ImportValue: PrivateSubnetSecurityGroup
+      InstanceType: t2.micro
+      IamInstanceProfile: !Ref EC2InstanceProfile
+      AssociatePublicIpAddress: true
+      KeyName: !Ref SSHKeyName
+
+  ASG:
+    Type: AWS::AutoScaling::AutoScalingGroup
+    CreationPolicy:
+      ResourceSignal:
+        Count: '1'
+        Timeout: PT15M
+    UpdatePolicy:
+      AutoScalingReplacingUpdate:
+        WillReplace: 'true'
+      AutoScalingRollingUpdate:
+        MinInstancesInService: "1"
+        MaxBatchSize: "1"
+        PauseTime: "PT12M5S"
+        WaitOnResourceSignals: "true"
+    Properties:
+      VPCZoneIdentifier:
+      - Fn::ImportValue: SubnetPrivateA
+      - Fn::ImportValue: SubnetPrivateB
+      LaunchConfigurationName: !Ref LaunchConfiguration
+      MaxSize: "5"
+      MinSize: "2"
+      DesiredCapacity: "2"
+      Cooldown: "60"
+      TargetGroupARNs:
+      - Fn::ImportValue: TargetGroup
+      MetricsCollection:
+        -
+          Granularity: "1Minute"
+          Metrics:
+            - "GroupMinSize"
+            - "GroupMaxSize"
+      Tags:
+      - Key: Name
+        Value: Project
+        PropagateAtLaunch: true
+
+Outputs:
+  ASG:
+    Value: !Ref ASG
+    Export:
+      Name: ASG

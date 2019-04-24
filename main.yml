@@ -1,0 +1,34 @@
+---
+Parameters:
+  SSHKeyName:
+    Description: The EC2 Key Pair to allow SSH access to the instances
+    Type: String
+    Default: demo
+
+AWSTemplateFormatVersion: 2010-09-09
+Resources:
+  BaseNetwork:
+    Type: 'AWS::CloudFormation::Stack'
+    Properties:
+      TemplateURL: https://s3-us-west-2.amazonaws.com/project-cloudformation-stack/network.yml
+  LoadBalancer:
+    Type: 'AWS::CloudFormation::Stack'
+    DependsOn: BaseNetwork
+    Properties:
+      TemplateURL: https://s3-us-west-2.amazonaws.com/project-cloudformation-stack/loadbalancer.yml
+  ECSCluster:
+    DependsOn: LoadBalancer
+    Type: 'AWS::CloudFormation::Stack'
+    Properties:
+      TemplateURL: https://s3-us-west-2.amazonaws.com/project-cloudformation-stack/ecscluster.yml
+  AutoScalingGroup:
+    DependsOn: LoadBalancer
+    Type: 'AWS::CloudFormation::Stack'
+    Properties:
+      TemplateURL: https://s3-us-west-2.amazonaws.com/project-cloudformation-stack/autoscalinggroup.yml
+
+  CloudWatchscaling:
+    DependsOn: ECSCluster
+    Type: 'AWS::CloudFormation::Stack'
+    Properties:
+      TemplateURL: https://s3-us-west-2.amazonaws.com/project-cloudformation-stack/scaling.yml

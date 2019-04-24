@@ -1,0 +1,104 @@
+---
+AWSTemplateFormatVersion: '2010-09-09'
+Resources:
+  AmazonEC2ContainerServiceRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: 2008-10-17
+        Statement:
+          - Sid: ''
+            Effect: Allow
+            Principal:
+              Service: ecs.amazonaws.com
+            Action: 'sts:AssumeRole'
+      ManagedPolicyArns:
+        - 'arn:aws:iam::aws:policy/service-role/AmazonEC2ContainerServiceRole'
+      Policies:
+      - PolicyName: ecs-service
+        PolicyDocument:
+          Statement:
+          - Effect: Allow
+            Action:
+            - elasticloadbalancing:Describe*
+            - elasticloadbalancing:DeregisterInstancesFromLoadBalancer
+            - elasticloadbalancing:RegisterInstancesWithLoadBalancer
+            - ec2:Describe*
+            - ec2:AuthorizeSecurityGroupIngress
+            - elasticloadbalancing:DeregisterTargets
+            - elasticloadbalancing:RegisterTargets
+            Resource: "*"
+
+  ECSAutoScalingRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service: [application-autoscaling.amazonaws.com]
+          Action: ["sts:AssumeRole"]
+      Path: /
+      Policies:
+      - PolicyName: service-autoscaling
+        PolicyDocument:
+          Statement:
+          - Effect: Allow
+            Action: ["application-autoscaling:*", "cloudwatch:DescribeAlarms", "cloudwatch:PutMetricAlarm",
+              "ecs:DescribeServices", "ecs:UpdateService"]
+            Resource: "*"
+
+  ECScluster:
+    Type: AWS::ECS::Cluster
+    Properties:
+      ClusterName: Project
+
+  taskdefinition:
+    Type: AWS::ECS::TaskDefinition
+    Properties:
+      NetworkMode: bridge
+      ContainerDefinitions:
+        - Name: petclinic
+          Image: 069312102029.dkr.ecr.us-west-2.amazonaws.com/petclinic:latest
+          Cpu: '256'
+          PortMappings:
+            - ContainerPort: 8080
+          Memory: '240'
+          Essential: 'true'
+
+  service:
+    Type: AWS::ECS::Service
+    Properties:
+      Cluster: !Ref ECScluster
+      DeploymentConfiguration:
+        MaximumPercent: 200
+        MinimumHealthyPercent: 50
+      DesiredCount: 6
+      LoadBalancers:
+        - ContainerName: petclinic
+          ContainerPort: 8080
+          TargetGroupArn:
+            Fn::ImportValue: TargetGroup
+      TaskDefinition: !Ref taskdefinition
+      ServiceName: petclinic
+      Role: !Ref AmazonEC2ContainerServiceRole
+
+  ScalableTarget:
+    Type: AWS::ApplicationAutoScaling::ScalableTarget
+    Properties:
+      MaxCapacity: 12
+      MinCapacity: 4
+      ResourceId: !Join ["/", [service, !Ref "ECScluster", !GetAtt [service, Name]]]
+      RoleARN: !GetAtt [ ECSAutoScalingRole, Arn ]
+      ScalableDimension: ecs:service:DesiredCount
+      ServiceNamespace: ecs
+
+Outputs:
+  ECScluster:
+    Value: !Ref ECScluster
+    Export:
+      Name: ECScluster
+  ScalableTarget:
+    Value: !Ref ScalableTarget
+    Export:
+      Name: ScalableTarget
