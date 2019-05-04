@@ -23,12 +23,12 @@ Parameters:
   ContainerMemory:
     Description: Container memory reservation
     Type: Number
-    Default: 384
+    Default: 325
 
   ContainerMinCapacity:
     Description: Container minimum capacity
     Type: Number
-    Default: 4
+    Default: 2
 
   ContainerMaxCapacity:
     Description: Container maximum capacity
@@ -38,7 +38,7 @@ Parameters:
   ContainerDesiredCount:
     Description: Container desired count
     Type: Number
-    Default: 6
+    Default: 4
 
   InstanceType:
     Type: String
@@ -54,7 +54,7 @@ Parameters:
   AutoScalingMinCapacity:
     Description: AutoScaling group minimum capacity
     Type: Number
-    Default: 2
+    Default: 1
 
   AutoScalingMaxCapacity:
     Description: AutoScaling group minimum capacity
