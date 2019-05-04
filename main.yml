@@ -59,7 +59,7 @@ Parameters:
   AutoScalingMaxCapacity:
     Description: AutoScaling group minimum capacity
     Type: Number
-    Default: 4
+    Default: 5
 
   AutoScalingDesiredCapacity:
     Description: Desired count of AutoScaling group capacity
