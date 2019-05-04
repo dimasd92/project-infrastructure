@@ -1,0 +1,77 @@
+---
+AWSTemplateFormatVersion: '2010-09-09'
+Parameters:
+  DBName:
+    Description: The database name
+    Type: String
+    MinLength: '1'
+    MaxLength: '64'
+    AllowedPattern: '[a-zA-Z][a-zA-Z0-9]*'
+    ConstraintDescription: must begin with a letter and contain only alphanumeric characters.
+  DBUser:
+    NoEcho: 'true'
+    Description: The database admin account username
+    Type: String
+    MinLength: '1'
+    MaxLength: '16'
+    AllowedPattern: '[a-zA-Z][a-zA-Z0-9]*'
+    ConstraintDescription: must begin with a letter and contain only alphanumeric characters.
+  DBPassword:
+    NoEcho: 'true'
+    Description: The database admin account password
+    Type: String
+    MinLength: '6'
+    MaxLength: '40'
+    AllowedPattern: '[a-zA-Z0-9]*'
+    ConstraintDescription: must contain only alphanumeric characters.
+
+Resources:
+  DataBase:
+    Type: AWS::RDS::DBInstance
+    Properties:
+      DBName: !Ref DBName
+      AllocatedStorage: 20
+      DBInstanceClass: db.t2.micro
+      Engine: MySQL
+      DBSubnetGroupName: !Ref DBSubnetGroup
+#      DBSnapshotIdentifier: arn:aws:rds:us-west-2:069312102029:snapshot:initialpetclinicdb
+      VPCSecurityGroups:
+        - Fn::ImportValue: DatabaseSecurityGroup
+#      MultiAZ: true
+      EngineVersion: 5.6.40
+      DeletionProtection: false
+#      EnableCloudwatchLogsExports: true
+      MasterUsername: !Ref DBUser
+      MasterUserPassword: !Ref DBPassword
+      DBParameterGroupName: !Ref RDSParameterGroup
+      Tags:
+        - Key: Name
+          Value: Petclinic
+  RDSParameterGroup:
+    Type: AWS::RDS::DBParameterGroup
+    Properties:
+      Family: MySQL5.6
+      Description: Database parameter group for PetclinicDB
+      Parameters:
+        autocommit: 1
+        general_log: 1
+        old_passwords: 0
+
+  DBSubnetGroup:
+    Type: "AWS::RDS::DBSubnetGroup"
+    Properties:
+      DBSubnetGroupDescription: "Subnet group for Petclinic Data Base"
+      SubnetIds:
+      - Fn::ImportValue: SubnetPrivateA
+      - Fn::ImportValue: SubnetPrivateB
+      Tags:
+        - Key: Name
+          Value: DataBase
+Outputs:
+  JDBCConnectionString:
+    Description: JDBC connection string for the database
+#    Value: !Join ['', ['jdbc:mysql://', !GetAtt [DataBase, Endpoint.Address], ':', !GetAtt [DataBase, Endpoint.Port], /, !Ref 'DBName]]
+    Value: !Join ['', ['jdbc:mysql://', !GetAtt [DataBase, Endpoint.Address], ':', !GetAtt [
+          DataBase, Endpoint.Port], /, !Ref 'DBName']]
+    Export:
+      Name: JDBCConnectionString

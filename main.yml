@@ -1,9 +1,95 @@
 ---
 Parameters:
+  VPCName:
+    Description: The EC2 Key Pair to allow SSH access to the instances
+    Type: String
+    Default: Project
+
   SSHKeyName:
     Description: The EC2 Key Pair to allow SSH access to the instances
     Type: String
     Default: demo
+
+  ContainerImage:
+    Description: Container image
+    Type: String
+    Default: 069312102029.dkr.ecr.us-west-2.amazonaws.com/petclinic:latest
+
+  ContainerCPU:
+    Description: Container CPU reservation
+    Type: Number
+    Default: 256
+
+  ContainerMemory:
+    Description: Container memory reservation
+    Type: Number
+    Default: 384
+
+  ContainerMinCapacity:
+    Description: Container minimum capacity
+    Type: Number
+    Default: 4
+
+  ContainerMaxCapacity:
+    Description: Container maximum capacity
+    Type: Number
+    Default: 12
+
+  ContainerDesiredCount:
+    Description: Container desired count
+    Type: Number
+    Default: 6
+
+  InstanceType:
+    Type: String
+    Description: Enter one of the possible instance type for instance
+    Default: t2.micro
+    AllowedValues:
+      - t2.micro
+      - t2.large
+      - m4.large
+      - m4.xlarge
+      - c4.large
+
+  AutoScalingMinCapacity:
+    Description: AutoScaling group minimum capacity
+    Type: Number
+    Default: 2
+
+  AutoScalingMaxCapacity:
+    Description: AutoScaling group minimum capacity
+    Type: Number
+    Default: 4
+
+  AutoScalingDesiredCapacity:
+    Description: Desired count of AutoScaling group capacity
+    Type: Number
+    Default: 2
+
+  DBName:
+    Default: project
+    Description: The database name
+    Type: String
+    MinLength: '1'
+    MaxLength: '64'
+    AllowedPattern: '[a-zA-Z][a-zA-Z0-9]*'
+    ConstraintDescription: must begin with a letter and contain only alphanumeric characters.
+  DBUser:
+    NoEcho: 'true'
+    Description: The database admin account username
+    Type: String
+    MinLength: '1'
+    MaxLength: '16'
+    AllowedPattern: '[a-zA-Z][a-zA-Z0-9]*'
+    ConstraintDescription: must begin with a letter and contain only alphanumeric characters.
+  DBPassword:
+    NoEcho: 'true'
+    Description: The database admin account password
+    Type: String
+    MinLength: '6'
+    MaxLength: '41'
+    AllowedPattern: '[a-zA-Z0-9]*'
+    ConstraintDescription: must contain only alphanumeric characters.
 
 AWSTemplateFormatVersion: 2010-09-09
 Resources:
@@ -11,24 +97,52 @@ Resources:
     Type: 'AWS::CloudFormation::Stack'
     Properties:
       TemplateURL: https://s3-us-west-2.amazonaws.com/project-cloudformation-stack/network.yml
+      Parameters:
+        VPCName: !Ref VPCName
   LoadBalancer:
     Type: 'AWS::CloudFormation::Stack'
     DependsOn: BaseNetwork
     Properties:
       TemplateURL: https://s3-us-west-2.amazonaws.com/project-cloudformation-stack/loadbalancer.yml
   ECSCluster:
-    DependsOn: LoadBalancer
+    DependsOn: DataBase
     Type: 'AWS::CloudFormation::Stack'
     Properties:
       TemplateURL: https://s3-us-west-2.amazonaws.com/project-cloudformation-stack/ecscluster.yml
-  AutoScalingGroup:
-    DependsOn: LoadBalancer
-    Type: 'AWS::CloudFormation::Stack'
-    Properties:
-      TemplateURL: https://s3-us-west-2.amazonaws.com/project-cloudformation-stack/autoscalinggroup.yml
+      Parameters:
+        ContainerImage: !Ref ContainerImage
+        ContainerCPU: !Ref ContainerCPU
+        ContainerMemory: !Ref ContainerMemory
+        ContainerMinCapacity: !Ref ContainerMinCapacity
+        ContainerMaxCapacity: !Ref ContainerMaxCapacity
+        ContainerDesiredCount: !Ref ContainerDesiredCount
+        DBUser: !Ref DBUser
+        DBPassword: !Ref DBPassword
+        SSHKeyName: !Ref SSHKeyName
+        InstanceType: !Ref InstanceType
+        AutoScalingMinCapacity: !Ref AutoScalingMinCapacity
+        AutoScalingMaxCapacity: !Ref AutoScalingMaxCapacity
+        AutoScalingDesiredCapacity: !Ref AutoScalingDesiredCapacity
 
-  CloudWatchscaling:
+
+  CloudWatch:
     DependsOn: ECSCluster
     Type: 'AWS::CloudFormation::Stack'
     Properties:
-      TemplateURL: https://s3-us-west-2.amazonaws.com/project-cloudformation-stack/scaling.yml
+      TemplateURL: https://s3-us-west-2.amazonaws.com/project-cloudformation-stack/cloudwatch.yml
+
+  DataBase:
+    DependsOn: BaseNetwork
+    Type: 'AWS::CloudFormation::Stack'
+    Properties:
+      TemplateURL: https://s3-us-west-2.amazonaws.com/project-cloudformation-stack/database.yml
+      Parameters:
+        DBName: !Ref DBName
+        DBUser: !Ref DBUser
+        DBPassword: !Ref DBPassword
+
+Outputs:
+  ECSclustername:
+    Description: URL of the website
+    Value:
+      Fn::GetAtt: [ LoadBalancer , Outputs.URL ]

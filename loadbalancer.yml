@@ -1,10 +1,4 @@
 ---
-Parameters:
-  SSHKeyName:
-    Description: The EC2 Key Pair to allow SSH access to the instances
-    Type: String
-    Default: demo
-
 AWSTemplateFormatVersion: '2010-09-09'
 Resources:
 
@@ -35,9 +29,6 @@ Resources:
       LoadBalancerAttributes:
       - Key: idle_timeout.timeout_seconds
         Value: '30'
-      Tags:
-        - Key: Name
-          Value: LoadBalancer
 
   LoadBalancerListener:
     Type: AWS::ElasticLoadBalancingV2::Listener
@@ -72,3 +63,6 @@ Outputs:
     Value: !GetAtt LoadBalancer.LoadBalancerFullName
     Export:
       Name: LoadBalancerFullName
+  URL:
+    Description: URL of the website
+    Value: !Join ['', ['https://', !GetAtt [LoadBalancer, DNSName]]]

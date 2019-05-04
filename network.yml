@@ -1,3 +1,10 @@
+---
+Parameters:
+  VPCName:
+    Description: The EC2 Key Pair to allow SSH access to the instances
+    Type: String
+    Default: Project
+
 AWSTemplateFormatVersion: '2010-09-09'
 Resources:
   VPC:
@@ -9,7 +16,7 @@ Resources:
       InstanceTenancy: default
       Tags:
       - Key: Name
-        Value: Project
+        Value: !Ref VPCName
 
   SubnetPrivateA:
     Type: AWS::EC2::Subnet
@@ -51,7 +58,6 @@ Resources:
       - Key: Name
         Value: Public b
 
-#####################################################
 #  ElasticIP:
 #      Type: AWS::EC2::EIP
 #      Properties:
@@ -93,7 +99,6 @@ Resources:
       SubnetId: !Ref SubnetPrivateB
       RouteTableId: !Ref PrivateRouteTable
 
-#####################################################
   InternetGateway:
     Type: AWS::EC2::InternetGateway
     Properties:
@@ -140,8 +145,6 @@ Resources:
       RouteTableId:
         Ref: PublicRouteTable
 
-#####################################################
-    ###   SecurityGroup   ###
   PrivateSubnetSecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
@@ -186,7 +189,24 @@ Resources:
       - Key: Name
         Value: Public network
 
-########################################################
+  DatabaseSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Security group for private network
+      VpcId: !Ref VPC
+      SecurityGroupIngress:
+      - IpProtocol: tcp
+        FromPort: 3306
+        ToPort: 3306
+        CidrIp: 10.0.0.0/24
+      - IpProtocol: tcp
+        FromPort: 3306
+        ToPort: 3306
+        CidrIp: 10.0.1.0/24
+      Tags:
+      - Key: Name
+        Value: Database
+
 Outputs:
   VPC:
     Value: !Ref VPC
@@ -200,6 +220,10 @@ Outputs:
     Value: !Ref PublicSubnetSecurityGroup
     Export:
       Name: PublicSubnetSecurityGroup
+  DatabaseSecurityGroup:
+    Value: !Ref DatabaseSecurityGroup
+    Export:
+      Name: DatabaseSecurityGroup
   SubnetPrivateA:
     Value: !Ref SubnetPrivateA
     Export:

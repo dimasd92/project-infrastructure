@@ -1,0 +1,19 @@
+node {
+   def mvnHome
+   stage('Preparation') {
+      git 'https://github.com/dimasd92/spring-petclinic'
+      mvnHome = tool 'Maven'
+   }
+   stage('Build petclinic app') {
+         sh "'${mvnHome}/bin/mvn' clean package"
+   }
+   stage('Build docker image') {
+         sh label: '', script: 'wget -O tomcat/tomcat-users.xml https://s3-us-west-2.amazonaws.com/project.public/tomcat-users.xml'
+         sh label: '', script: 'docker build -t petclinic .'
+   }
+   stage('Deploy Docker image to ECR') {
+         sh label: '', script: '$(aws ecr get-login --no-include-email --region us-west-2)'
+         sh label: '', script: 'docker tag petclinic:latest 069312102029.dkr.ecr.us-west-2.amazonaws.com/petclinic:latest'
+         sh label: '', script: 'docker push 069312102029.dkr.ecr.us-west-2.amazonaws.com/petclinic:latest'
+   }
+}

@@ -1,6 +1,250 @@
 ---
+Parameters:
+
+  SSHKeyName:
+    Description: The EC2 Key Pair to allow SSH access to the instances
+    Type: String
+    Default: demo
+
+  InstanceType:
+    Type: String
+    Description: Enter one of the possible instance type for instance
+    Default: t2.micro
+    AllowedValues:
+      - t2.micro
+      - t2.large
+      - m4.large
+      - m4.xlarge
+      - c4.large
+
+  AutoScalingMinCapacity:
+    Description: AutoScaling group minimum capacity
+    Type: Number
+
+  AutoScalingMaxCapacity:
+    Description: AutoScaling group minimum capacity
+    Type: Number
+
+  AutoScalingDesiredCapacity:
+    Description: Desired count of AutoScaling group capacity
+    Type: Number
+
+  ContainerImage:
+    Description: Container image
+    Type: String
+    Default: 069312102029.dkr.ecr.us-west-2.amazonaws.com/petclinic:latest
+
+  ContainerCPU:
+    Description: Container CPU reservation
+    Type: Number
+    Default: 256
+
+  ContainerMemory:
+    Description: Container memory reservation
+    Type: Number
+    Default: 384
+
+  ContainerMinCapacity:
+    Description: Container minimum capacity
+    Type: Number
+    Default: 4
+
+  ContainerMaxCapacity:
+    Description: Container maximum capacity
+    Type: Number
+    Default: 12
+
+  ContainerDesiredCount:
+    Description: Container desired count
+    Type: Number
+    Default: 6
+
+  DBName:
+    Default: project
+    Description: The database name
+    Type: String
+    MinLength: '1'
+    MaxLength: '64'
+    AllowedPattern: '[a-zA-Z][a-zA-Z0-9]*'
+    ConstraintDescription: must begin with a letter and contain only alphanumeric characters.
+  DBUser:
+    NoEcho: 'true'
+    Description: The database admin account username
+    Type: String
+    MinLength: '1'
+    MaxLength: '16'
+    AllowedPattern: '[a-zA-Z][a-zA-Z0-9]*'
+    ConstraintDescription: must begin with a letter and contain only alphanumeric characters.
+  DBPassword:
+    NoEcho: 'true'
+    Description: The database admin account password
+    Type: String
+    MinLength: '6'
+    MaxLength: '41'
+    AllowedPattern: '[a-zA-Z0-9]*'
+    ConstraintDescription: must contain only alphanumeric characters.
+
+Mappings:
+  AWSRegionToAMI:
+    ap-northeast-1:
+      AMI: ami-0d5f884dada5562c6
+    ap-northeast-2:
+      AMI: ami-0060ad36f655af38b
+    ap-south-1:
+      AMI: ami-056a07eb5b1d13734
+    ap-southeast-1:
+      AMI: ami-065c0bd2832a70f9d
+    ap-southeast-2:
+      AMI: ami-0aa8b7a8042811ddf
+    ca-central-1:
+      AMI: ami-0d50dee936e241e7e
+    eu-central-1:
+      AMI: ami-03804565a6baf6d30
+    eu-west-1:
+      AMI: ami-0dbcd2533bc72c3f6
+    eu-west-2:
+      AMI: ami-005307409c5f6e76c
+    eu-west-3:
+      AMI: ami-024c0b7d07abc6526
+    sa-east-1:
+      AMI: ami-0078e33a9103e1e58
+    us-east-1:
+      AMI: ami-0254e5972ebcd132c
+    us-east-2:
+      AMI: ami-0a0d2004b44b9287c
+    us-gov-west-1:
+      AMI: ami-a842dcc9
+    us-west-1:
+      AMI: ami-0de5608ca20c07aa2
+    us-west-2:
+      AMI: ami-0302f3ec240b9d23c
+
 AWSTemplateFormatVersion: '2010-09-09'
 Resources:
+  EC2Role:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service: [ec2.amazonaws.com]
+          Action: ['sts:AssumeRole']
+      Path: /
+      Policies:
+      - PolicyName: ecs-service
+        PolicyDocument:
+          Statement:
+          - Effect: Allow
+            Action: ['ecs:CreateCluster', 'ecs:DeregisterContainerInstance', 'ecs:DiscoverPollEndpoint', ########################3
+              'ecs:Poll', 'ecs:RegisterContainerInstance', 'ecs:StartTelemetrySession',       ################33
+              'ecs:Submit*', 'logs:CreateLogStream', 'logs:PutLogEvents', 'ecr:*']   ##########################
+            Resource: '*'
+
+  EC2InstanceProfile:
+    Type: AWS::IAM::InstanceProfile
+    Properties:
+      Path: /
+      Roles:
+      - Ref: EC2Role
+
+  LaunchConfiguration:
+    Type: AWS::AutoScaling::LaunchConfiguration
+    Properties:
+      ImageId: !FindInMap [AWSRegionToAMI, !Ref "AWS::Region", AMI]
+      UserData:
+        Fn::Base64: !Sub |
+          #!/bin/bash -xe
+          echo ECS_CLUSTER=${ECScluster} >> /etc/ecs/ecs.config
+          yum install -y aws-cfn-bootstrap
+          /opt/aws/bin/cfn-signal -e $? --stack ${AWS::StackName} --resource ASG --region ${AWS::Region}
+          yum install -y https://s3.amazonaws.com/ec2-downloads-windows/SSMAgent/latest/linux_amd64/amazon-ssm-agent.rpm
+          yum install -y https://s3.amazonaws.com/amazoncloudwatch-agent/amazon_linux/amd64/latest/amazon-cloudwatch-agent.rpm
+          yum install -y aws-cfn-bootstrap hibagent
+          /opt/aws/bin/cfn-init -v --region ${AWS::Region} --stack ${AWS::StackName} --resource ECSLaunchConfiguration
+          /opt/aws/bin/cfn-signal -e $? --region ${AWS::Region} --stack ${AWS::StackName} --resource ECSAutoScalingGroup
+          /usr/bin/enable-ec2-spot-hibernation
+
+      Metadata:
+      AWS::CloudFormation::Init:
+        config:
+          packages:
+            yum:
+              collectd: []
+
+          commands:
+            01_add_instance_to_cluster:
+              command: !Sub echo ECS_CLUSTER=${ECSCluster} >> /etc/ecs/ecs.config
+            02_enable_cloudwatch_agent:
+              command: !Sub /opt/aws/amazon-cloudwatch-agent/bin/amazon-cloudwatch-agent-ctl -a fetch-config -m ec2 -c ssm:${ECSCloudWatchParameter} -s
+          files:
+            /etc/cfn/cfn-hup.conf:
+              mode: 000400
+              owner: root
+              group: root
+              content: !Sub |
+                [main]
+                stack=${AWS::StackId}
+                region=${AWS::Region}
+            /etc/cfn/hooks.d/cfn-auto-reloader.conf:
+              content: !Sub |
+                [cfn-auto-reloader-hook]
+                triggers=post.update
+                path=Resources.ECSLaunchConfiguration.Metadata.AWS::CloudFormation::Init
+                action=/opt/aws/bin/cfn-init -v --region ${AWS::Region} --stack ${AWS::StackName} --resource ECSLaunchConfiguration
+          services:
+            sysvinit:
+              cfn-hup:
+                enabled: true
+                ensureRunning: true
+                files:
+                  - /etc/cfn/cfn-hup.conf
+                  - /etc/cfn/hooks.d/cfn-auto-reloader.conf
+
+      SecurityGroups:
+      - Fn::ImportValue: PrivateSubnetSecurityGroup
+      InstanceType: !Ref InstanceType
+      IamInstanceProfile: !Ref EC2InstanceProfile
+      AssociatePublicIpAddress: true
+      KeyName: !Ref SSHKeyName
+
+  ASG:
+    Type: AWS::AutoScaling::AutoScalingGroup
+    CreationPolicy:
+      ResourceSignal:
+        Count: '1'
+        Timeout: PT15M
+    UpdatePolicy:
+      AutoScalingReplacingUpdate:
+        WillReplace: 'true'
+      AutoScalingRollingUpdate:
+        MinInstancesInService: "1"
+        MaxBatchSize: "1"
+        PauseTime: "PT12M5S"
+        WaitOnResourceSignals: "true"
+    Properties:
+      VPCZoneIdentifier:
+      - Fn::ImportValue: SubnetPrivateA
+      - Fn::ImportValue: SubnetPrivateB
+      LaunchConfigurationName: !Ref LaunchConfiguration
+      MaxSize: !Ref AutoScalingMaxCapacity
+      MinSize: !Ref AutoScalingMinCapacity
+      DesiredCapacity: !Ref AutoScalingDesiredCapacity
+      Cooldown: "100"
+      TargetGroupARNs:
+      - Fn::ImportValue: TargetGroup
+      MetricsCollection:
+        -
+          Granularity: "1Minute"
+          Metrics:
+            - "GroupMinSize"
+            - "GroupMaxSize"
+      Tags:
+      - Key: Name
+        Value: Project
+        PropagateAtLaunch: true
+
+
   AmazonEC2ContainerServiceRole:
     Type: AWS::IAM::Role
     Properties:
@@ -59,12 +303,34 @@ Resources:
       NetworkMode: bridge
       ContainerDefinitions:
         - Name: petclinic
-          Image: 069312102029.dkr.ecr.us-west-2.amazonaws.com/petclinic:latest
-          Cpu: '256'
+          Image: !Ref ContainerImage
+          Cpu: !Ref ContainerCPU
           PortMappings:
             - ContainerPort: 8080
-          Memory: '240'
+          Memory: !Ref ContainerMemory
           Essential: 'true'
+          LogConfiguration:
+            LogDriver: awslogs
+            Options:
+              awslogs-group: !Ref CloudWatchLogsGroup
+              awslogs-region: !Ref AWS::Region
+          Environment:
+            - Name: SPRING_PROFILES_ACTIVE
+              Value: mysql
+            - Name: JDBC_DATABASE_URL
+              Value:
+                Fn::ImportValue: JDBCConnectionString
+            - Name: JDBC_DATABASE_USERNAME
+              Value: !Ref DBUser
+            - Name: JDBC_DATABASE_PASSWORD
+              Value: !Ref DBPassword
+
+  CloudWatchLogsGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Ref AWS::StackName
+      RetentionInDays: 365
+
 
   service:
     Type: AWS::ECS::Service
@@ -73,21 +339,22 @@ Resources:
       DeploymentConfiguration:
         MaximumPercent: 200
         MinimumHealthyPercent: 50
-      DesiredCount: 6
+      DesiredCount: !Ref ContainerDesiredCount
       LoadBalancers:
         - ContainerName: petclinic
           ContainerPort: 8080
           TargetGroupArn:
             Fn::ImportValue: TargetGroup
       TaskDefinition: !Ref taskdefinition
+      HealthCheckGracePeriodSeconds: 60
       ServiceName: petclinic
       Role: !Ref AmazonEC2ContainerServiceRole
 
   ScalableTarget:
     Type: AWS::ApplicationAutoScaling::ScalableTarget
     Properties:
-      MaxCapacity: 12
-      MinCapacity: 4
+      MaxCapacity: !Ref ContainerMaxCapacity
+      MinCapacity: !Ref ContainerMinCapacity
       ResourceId: !Join ["/", [service, !Ref "ECScluster", !GetAtt [service, Name]]]
       RoleARN: !GetAtt [ ECSAutoScalingRole, Arn ]
       ScalableDimension: ecs:service:DesiredCount
@@ -102,3 +369,8 @@ Outputs:
     Value: !Ref ScalableTarget
     Export:
       Name: ScalableTarget
+
+  ASG:
+    Value: !Ref ASG
+    Export:
+      Name: ASG
