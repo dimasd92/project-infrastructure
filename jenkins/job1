@@ -1,7 +1,7 @@
 node {
    def mvnHome
    stage('Preparation') {
-      git credentialsId: '53906482-34b4-4bd3-8ade-6d75cd904968', url: 'https://github.com/dimasd92/spring-petclinic'
+      git 'https://github.com/dimasd92/spring-petclinic'
       mvnHome = tool 'Maven'
    }
    stage('Test petclinic') {

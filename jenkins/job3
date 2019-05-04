@@ -1,0 +1,20 @@
+node {
+   stage('Preparation') {
+      git credentialsId: '53906482-34b4-4bd3-8ade-6d75cd904968', url: 'https://github.com/dimasd92/project-infrastructure'
+   }
+   stage('Deploy templates to S3') {
+      sh label: '', script: 'aws s3 cp main.yml s3://project-cloudformation-stack/main.yml'
+      sh label: '', script: 'aws s3 cp cloudwatch.yml s3://project-cloudformation-stack/cloudwatch.yml'
+      sh label: '', script: 'aws s3 cp database.yml s3://project-cloudformation-stack/database.yml'
+      sh label: '', script: 'aws s3 cp ecscluster.yml s3://project-cloudformation-stack/ecscluster.yml'
+      sh label: '', script: 'aws s3 cp loadbalancer.yml s3://project-cloudformation-stack/loadbalancer.yml'
+      sh label: '', script: 'aws s3 cp network.yml s3://project-cloudformation-stack/network.yml'
+   }
+   stage('Build infrastructure') {
+         sh label: '', script: 'aws cloudformation deploy --template-file main.yml --parameter-overrides DBPassword=$DBPassword DBUser=$DBUser SSHKeyName=$SSHKeyName \
+                                ContainerImage=$ContainerImage ContainerCPU=$ContainerCPU ContainerMemory=$ContainerMemory ContainerMinCapacity=$ContainerMinCapacity \
+                                ContainerMaxCapacity=$ContainerMaxCapacity ContainerDesiredCount=$ContainerDesiredCount InstanceType=$InstanceType \
+                                AutoScalingMinCapacity=$AutoScalingMinCapacity AutoScalingMaxCapacity=$AutoScalingMaxCapacity AutoScalingDesiredCapacity=$AutoScalingDesiredCapacity \
+                                --capabilities CAPABILITY_IAM --stack-name $StackName'
+   }
+}

@@ -11,8 +11,8 @@ Resources:
     Type: AWS::EC2::VPC
     Properties:
       CidrBlock: 10.0.0.0/16
-      EnableDnsSupport: 'true'
-      EnableDnsHostnames: 'true'
+      EnableDnsSupport: true
+      EnableDnsHostnames: true
       InstanceTenancy: default
       Tags:
       - Key: Name
@@ -23,7 +23,7 @@ Resources:
     Properties:
       VpcId: !Ref VPC
       CidrBlock: 10.0.0.0/24
-      AvailabilityZone: "us-west-2a"
+#      AvailabilityZone: us-west-2a
       Tags:
       - Key: Name
         Value: Private a
@@ -33,7 +33,7 @@ Resources:
     Properties:
       VpcId: !Ref VPC
       CidrBlock: 10.0.1.0/24
-      AvailabilityZone: "us-west-2b"
+#      AvailabilityZone: "us-west-2b"
       Tags:
       - Key: Name
         Value: Private b
@@ -43,7 +43,7 @@ Resources:
     Properties:
       VpcId: !Ref VPC
       CidrBlock: 10.0.2.0/24
-      AvailabilityZone: "us-west-2a"
+#      AvailabilityZone: "us-west-2a"
       Tags:
       - Key: Name
         Value: Public a
@@ -53,7 +53,7 @@ Resources:
     Properties:
       VpcId: !Ref VPC
       CidrBlock: 10.0.3.0/24
-      AvailabilityZone: "us-west-2b"
+#      AvailabilityZone: "us-west-2b"
       Tags:
       - Key: Name
         Value: Public b
@@ -79,7 +79,7 @@ Resources:
 
   PrivateRoute:
     Type: AWS::EC2::Route
-    DependsOn: InternetGateway
+#    DependsOn: InternetGateway
     Properties:
       RouteTableId:
         Ref: PrivateRouteTable
@@ -123,7 +123,7 @@ Resources:
 
   PublicRoute:
     Type: AWS::EC2::Route
-    DependsOn: InternetGateway
+#    DependsOn: InternetGateway
     Properties:
       RouteTableId:
         Ref: PublicRouteTable

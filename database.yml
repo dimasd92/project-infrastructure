@@ -30,17 +30,15 @@ Resources:
     Type: AWS::RDS::DBInstance
     Properties:
       DBName: !Ref DBName
-      AllocatedStorage: 20
+      AllocatedStorage: '20'
       DBInstanceClass: db.t2.micro
       Engine: MySQL
       DBSubnetGroupName: !Ref DBSubnetGroup
-#      DBSnapshotIdentifier: arn:aws:rds:us-west-2:069312102029:snapshot:initialpetclinicdb
       VPCSecurityGroups:
         - Fn::ImportValue: DatabaseSecurityGroup
-#      MultiAZ: true
       EngineVersion: 5.6.40
       DeletionProtection: false
-#      EnableCloudwatchLogsExports: true
+#      EnableCloudwatchLogsExports: 'true'
       MasterUsername: !Ref DBUser
       MasterUserPassword: !Ref DBPassword
       DBParameterGroupName: !Ref RDSParameterGroup
@@ -53,9 +51,9 @@ Resources:
       Family: MySQL5.6
       Description: Database parameter group for PetclinicDB
       Parameters:
-        autocommit: 1
-        general_log: 1
-        old_passwords: 0
+        autocommit: '1'
+        general_log: '1'
+        old_passwords: '0'
 
   DBSubnetGroup:
     Type: "AWS::RDS::DBSubnetGroup"

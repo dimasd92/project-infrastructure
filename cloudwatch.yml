@@ -15,11 +15,11 @@ Resources:
   MemoryReservationHighAlert:
     Type: AWS::CloudWatch::Alarm
     Properties:
-      EvaluationPeriods: '5'
+      EvaluationPeriods: 5
       Statistic: Maximum
       Threshold: 80
       AlarmDescription: Alarm if CPU too high or metric disappears indicating instance is down
-      Period: '60'
+      Period: 60
       AlarmActions:
       - Ref: SimpleScalingUp
       Namespace: AWS/ECS
@@ -43,11 +43,11 @@ Resources:
   MemoryReservationLowAlert:
     Type: AWS::CloudWatch::Alarm
     Properties:
-      EvaluationPeriods: '5'
+      EvaluationPeriods: 5
       Statistic: Maximum
       Threshold: 35
       AlarmDescription: Alarm if CPU too high or metric disappears indicating instance is down
-      Period: '60'
+      Period: 60
       AlarmActions:
       - Ref: SimpleScalingDown
       Namespace: AWS/ECS
@@ -61,11 +61,11 @@ Resources:
   RequestHighAlert1:
     Type: AWS::CloudWatch::Alarm
     Properties:
-      EvaluationPeriods: '5'
+      EvaluationPeriods: 5
       Statistic: Sum
       Threshold: 10
       AlarmDescription: Alarm if CPU too high or metric disappears indicating instance is down
-      Period: '60'
+      Period: 60
       AlarmActions:
       - Ref: AutoScaling
       OKActions:
@@ -81,11 +81,11 @@ Resources:
   RequestHighAlert2:
     Type: AWS::CloudWatch::Alarm
     Properties:
-      EvaluationPeriods: '5'
+      EvaluationPeriods: 5
       Statistic: Sum
       Threshold: 100
       AlarmDescription: Alarm if CPU too high or metric disappears indicating instance is down
-      Period: '60'
+      Period: 60
       AlarmActions:
       - Ref: AutoScaling
       OKActions:
@@ -105,8 +105,8 @@ Resources:
       PolicyType: StepScaling
       ScalingTargetId:
         Fn::ImportValue: ScalableTarget
-      ScalableDimension: ecs:service:DesiredCount
-      ServiceNamespace: ecs
+#      ScalableDimension: ecs:service:DesiredCount
+#      ServiceNamespace: ecs
       StepScalingPolicyConfiguration:
         AdjustmentType: ChangeInCapacity
         Cooldown: 180
