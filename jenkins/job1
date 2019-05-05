@@ -26,6 +26,8 @@ return null
 
 
    stage('Preparation') {
+         echo "${GIT_TAG_MESSAGE} asdasd"
+
          echo "${params.GitTag} asdasd"
 
          echo "${params.taggit} asdasd"
