@@ -3,6 +3,8 @@ parameters {
 }
 node {
    stage('Preparation') {
+         echo "${params.GitTag} asdasd"
+
          slackSend baseUrl: 'https://petclinicproject.slack.com/services/hooks/jenkins-ci/', channel: '#builds', color: '#439FE0', message: 'Building the app started. Version - $GitTag', tokenCredentialId: '4667cb0b-4bae-494e-a110-1642908f960d'
          git 'https://github.com/dimasd92/spring-petclinic'
          mvnHome = tool 'Maven'
@@ -22,8 +24,8 @@ node {
    }
    stage('Deploy Docker image to ECR') {
          sh label: '', script: '$(aws ecr get-login --no-include-email --region us-west-2)'
-         sh label: '', script: 'docker tag petclinic:latest 069312102029.dkr.ecr.us-west-2.amazonaws.com/petclinic:master-${params.GitTag}'
-         sh label: '', script: 'docker push 069312102029.dkr.ecr.us-west-2.amazonaws.com/petclinic:master-${params.GitTag}'
+         sh label: '', script: 'docker tag petclinic:latest 069312102029.dkr.ecr.us-west-2.amazonaws.com/petclinic:master-"${params.GitTag}"'
+         sh label: '', script: 'docker push 069312102029.dkr.ecr.us-west-2.amazonaws.com/petclinic:master-"${params.GitTag}"'
          slackSend baseUrl: 'https://petclinicproject.slack.com/services/hooks/jenkins-ci/', channel: '#builds', color: '#439FE0', message: 'Docker image deployed to the ECR.', tokenCredentialId: '4667cb0b-4bae-494e-a110-1642908f960d'
     }
  }
