@@ -10,19 +10,8 @@ parameters {
 git url: 'https://github.com/dimasd92/spring-petclinic'
 env.GIT_TAG_NAME = gitTagName()
 env.GIT_TAG_MESSAGE = gitTagMessage()
-}
 
-/** @return The tag name, or `null` if the current commit isn't a tag. */
-String gitTagName() {
-commit = getCommit()
-if (commit) {
-    desc = sh(script: "git describe --tags ${commit}", returnStdout: true)?.trim()
-    if (isTag(desc)) {
-        return desc
-    }
-}
-return null
-}
+
 
 
    stage('Preparation') {
@@ -53,5 +42,5 @@ return null
          sh label: '', script: 'docker tag petclinic:latest 069312102029.dkr.ecr.us-west-2.amazonaws.com/petclinic:${params.GitTag}'
          sh label: '', script: 'docker push 069312102029.dkr.ecr.us-west-2.amazonaws.com/petclinic:${params.GitTag}'
          slackSend baseUrl: 'https://petclinicproject.slack.com/services/hooks/jenkins-ci/', channel: '#builds', color: '#439FE0', message: 'Docker image deployed to the ECR.', tokenCredentialId: '4667cb0b-4bae-494e-a110-1642908f960d'
-   }
-}
+    }
+ }
