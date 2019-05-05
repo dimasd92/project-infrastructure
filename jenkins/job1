@@ -7,6 +7,24 @@ parameters {
   listGitBranches branchFilter: '.*', credentialsId: '', defaultValue: '1.5.x', name: 'taggit', quickFilterEnabled: false, remoteURL: 'https://github.com/dimasd92/spring-petclinic/', selectedValue: 'DEFAULT', sortMode: 'DESCENDING', tagFilter: '*', type: 'PT_TAG'
 }
 
+git url: 'https://github.com/dimasd92/spring-petclinic'
+env.GIT_TAG_NAME = gitTagName()
+env.GIT_TAG_MESSAGE = gitTagMessage()
+}
+
+/** @return The tag name, or `null` if the current commit isn't a tag. */
+String gitTagName() {
+commit = getCommit()
+if (commit) {
+    desc = sh(script: "git describe --tags ${commit}", returnStdout: true)?.trim()
+    if (isTag(desc)) {
+        return desc
+    }
+}
+return null
+}
+
+
    stage('Preparation') {
          echo "${params.GitTag} asdasd"
 
