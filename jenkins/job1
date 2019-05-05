@@ -1,7 +1,7 @@
 node {
    def mvnHome
    stage('Preparation') {
-      slackSend baseUrl: 'https://petclinicproject.slack.com/services/hooks/jenkins-ci/', channel: '#builds', color: '#439FE0', message: 'Build started', tokenCredentialId: '4667cb0b-4bae-494e-a110-1642908f960d'
+      slackSend baseUrl: 'https://petclinicproject.slack.com/services/hooks/jenkins-ci/', channel: '#builds', color: '#439FE0', message: 'Building the app started', tokenCredentialId: '4667cb0b-4bae-494e-a110-1642908f960d'
       git 'https://github.com/dimasd92/spring-petclinic'
       mvnHome = tool 'Maven'
    }
