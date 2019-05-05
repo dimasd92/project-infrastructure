@@ -123,9 +123,9 @@ Resources:
         AutoScalingMinCapacity: !Ref AutoScalingMinCapacity
         AutoScalingMaxCapacity: !Ref AutoScalingMaxCapacity
         AutoScalingDesiredCapacity: !Ref AutoScalingDesiredCapacity
-    Tags:
-    - Key: Name
-      Value: Project-ECSCluster     ###########################
+#    Tags:
+#    - Key: Name
+#      Value: Project-ECSCluster     ###########################
 
   CloudWatch:
     DependsOn: ECSCluster
