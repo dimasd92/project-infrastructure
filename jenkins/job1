@@ -7,7 +7,7 @@ parameters {
 }
 
 parameters {
-  gitParameter branch: '', branchFilter: '.*', defaultValue: '1.5.x', description: '', name: 'tag', quickFilterEnabled: false, selectedValue: 'TOP', sortMode: 'ASCENDING_SMART', tagFilter: '*', type: 'PT_TAG', useRepository: 'https://github.com/dimasd92/spring-petclinic/'
+  gitParameter branch: '', branchFilter: '.*', defaultValue: '1.5.x', description: '', name: 'tag', quickFilterEnabled: false, selectedValue: 'TOP', sortMode: 'ASCENDING_SMART', tagFilter: '*', type: 'PT_BRANCH', useRepository: 'https://github.com/dimasd92/spring-petclinic/'
 }
 
 
