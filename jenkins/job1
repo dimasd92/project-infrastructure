@@ -3,8 +3,14 @@ parameters {
    listGitBranches branchFilter: '.*', credentialsId: '', defaultValue: '1.5.x', name: 'GitTag', quickFilterEnabled: false, remoteURL: 'https://github.com/dimasd92/spring-petclinic/', selectedValue: 'TOP', sortMode: 'DESCENDING_SMART', tagFilter: '*', type: 'PT_TAG'
 }
 
+parameters {
+  listGitBranches branchFilter: '.*', credentialsId: '', defaultValue: '1.5.x', name: 'taggit', quickFilterEnabled: false, remoteURL: 'https://github.com/dimasd92/spring-petclinic/', selectedValue: 'TOP', sortMode: 'DESCENDING', tagFilter: '*', type: 'PT_TAG'
+}
+
    stage('Preparation') {
          echo "${params.GitTag} asdasd"
+
+         echo "${params.taggit} asdasd"
          slackSend baseUrl: 'https://petclinicproject.slack.com/services/hooks/jenkins-ci/', channel: '#builds', color: '#439FE0', message: 'Building the app started. Version - $GitTag', tokenCredentialId: '4667cb0b-4bae-494e-a110-1642908f960d'
          git 'https://github.com/dimasd92/spring-petclinic'
          mvnHome = tool 'Maven'
