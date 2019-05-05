@@ -4,7 +4,7 @@ parameters {
 }
 
 parameters {
-  listGitBranches branchFilter: '.*', credentialsId: '', defaultValue: '1.5.x', name: 'taggit', quickFilterEnabled: false, remoteURL: 'https://github.com/dimasd92/spring-petclinic/', selectedValue: 'TOP', sortMode: 'DESCENDING', tagFilter: '*', type: 'PT_TAG'
+  listGitBranches branchFilter: '.*', credentialsId: '', defaultValue: '1.5.x', name: 'taggit', quickFilterEnabled: false, remoteURL: 'https://github.com/dimasd92/spring-petclinic/', selectedValue: 'DEFAULT', sortMode: 'DESCENDING', tagFilter: '*', type: 'PT_TAG'
 }
 
    stage('Preparation') {
