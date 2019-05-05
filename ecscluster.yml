@@ -9,13 +9,13 @@ Parameters:
   InstanceType:
     Type: String
     Description: Enter one of the possible instance type for instance
-    Default: t2.micro
-    AllowedValues:
-      - t2.micro
-      - t2.large
-      - m4.large
-      - m4.xlarge
-      - c4.large
+  #  Default: t2.micro
+#    AllowedValues:
+#      - t2.micro
+#      - t2.large
+#      - m4.large
+#      - m4.xlarge
+#      - c4.large
 
   AutoScalingMinCapacity:
     Description: AutoScaling group minimum capacity
@@ -152,6 +152,12 @@ Resources:
     Type: AWS::AutoScaling::LaunchConfiguration
     Properties:
       ImageId: !FindInMap [AWSRegionToAMI, !Ref "AWS::Region", AMI]
+      SecurityGroups:
+      - Fn::ImportValue: PrivateSubnetSecurityGroup
+      InstanceType: !Ref InstanceType
+      IamInstanceProfile: !Ref EC2InstanceProfile
+      AssociatePublicIpAddress: true
+      KeyName: !Ref SSHKeyName
       UserData:
         Fn::Base64: !Sub |
           #!/bin/bash -xe
@@ -160,9 +166,7 @@ Resources:
           /opt/aws/bin/cfn-signal -e $? --stack ${AWS::StackName} --resource ASG --region ${AWS::Region}
           yum install -y https://s3.amazonaws.com/ec2-downloads-windows/SSMAgent/latest/linux_amd64/amazon-ssm-agent.rpm
           yum install -y https://s3.amazonaws.com/amazoncloudwatch-agent/amazon_linux/amd64/latest/amazon-cloudwatch-agent.rpm
-          yum install -y aws-cfn-bootstrap hibagent
           /opt/aws/bin/cfn-init -v --region ${AWS::Region} --stack ${AWS::StackName} --resource ECSLaunchConfiguration
-          /opt/aws/bin/cfn-signal -e $? --region ${AWS::Region} --stack ${AWS::StackName} --resource ECSAutoScalingGroup
           /usr/bin/enable-ec2-spot-hibernation
 
     Metadata:
@@ -173,8 +177,6 @@ Resources:
               collectd: []
 
           commands:
-            01_add_instance_to_cluster:
-              command: !Sub echo ECS_CLUSTER=${ECScluster} >> /etc/ecs/ecs.config
             02_enable_cloudwatch_agent:
               command: !Sub /opt/aws/amazon-cloudwatch-agent/bin/amazon-cloudwatch-agent-ctl -a fetch-config -m ec2 -c ssm:${ECSCloudWatchParameter} -s
           files:
@@ -201,12 +203,7 @@ Resources:
                   - /etc/cfn/cfn-hup.conf
                   - /etc/cfn/hooks.d/cfn-auto-reloader.conf
 
-      SecurityGroups:
-      - Fn::ImportValue: PrivateSubnetSecurityGroup
-      InstanceType: !Ref InstanceType
-      IamInstanceProfile: !Ref EC2InstanceProfile
-      AssociatePublicIpAddress: true
-      KeyName: !Ref SSHKeyName
+
 
   ECSCloudWatchParameter:
     Type: AWS::SSM::Parameter
@@ -223,36 +220,36 @@ Resources:
                 "collect_list": [
                   {
                     "file_path": "/var/log/messages",
-                    "log_group_name": "${ECScluster}-/var/log/messages",
+                    "log_group_name": "${InstanceLogGroup}",
                     "log_stream_name": "{instance_id}",
                     "timestamp_format": "%b %d %H:%M:%S"
                   },
                   {
                     "file_path": "/var/log/dmesg",
-                    "log_group_name": "${ECScluster}-/var/log/dmesg",
+                    "log_group_name": "${InstanceLogGroup}",
                     "log_stream_name": "{instance_id}"
                   },
                   {
                     "file_path": "/var/log/docker",
-                    "log_group_name": "${ECScluster}-/var/log/docker",
+                    "log_group_name": "${InstanceLogGroup}",
                     "log_stream_name": "{instance_id}",
                     "timestamp_format": "%Y-%m-%dT%H:%M:%S.%f"
                   },
                   {
                     "file_path": "/var/log/ecs/ecs-init.log",
-                    "log_group_name": "${ECScluster}-/var/log/ecs/ecs-init.log",
+                    "log_group_name": "${InstanceLogGroup}",
                     "log_stream_name": "{instance_id}",
                     "timestamp_format": "%Y-%m-%dT%H:%M:%SZ"
                   },
                   {
                     "file_path": "/var/log/ecs/ecs-agent.log.*",
-                    "log_group_name": "${ECScluster}-/var/log/ecs/ecs-agent.log",
+                    "log_group_name": "${InstanceLogGroup}",
                     "log_stream_name": "{instance_id}",
                     "timestamp_format": "%Y-%m-%dT%H:%M:%SZ"
                   },
                   {
                     "file_path": "/var/log/ecs/audit.log",
-                    "log_group_name": "${ECScluster}-/var/log/ecs/audit.log",
+                    "log_group_name": "${InstanceLogGroup}",
                     "log_stream_name": "{instance_id}",
                     "timestamp_format": "%Y-%m-%dT%H:%M:%SZ"
                   }
@@ -293,6 +290,12 @@ Resources:
             }
           }
         }
+
+  InstanceLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      RetentionInDays: 7
+
 
   ASG:
     Type: AWS::AutoScaling::AutoScalingGroup
@@ -445,6 +448,126 @@ Resources:
       RoleARN: !GetAtt [ ECSAutoScalingRole, Arn ]
       ScalableDimension: ecs:service:DesiredCount
       ServiceNamespace: ecs
+
+#############CloudWatch
+  SimpleScalingUp:
+    Type: AWS::AutoScaling::ScalingPolicy
+    Properties:
+      AdjustmentType: "ChangeInCapacity"
+      PolicyType: "SimpleScaling"
+      Cooldown: "300"
+      AutoScalingGroupName:
+        Ref: ASG
+      ScalingAdjustment: 1
+
+  MemoryReservationHighAlert:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      EvaluationPeriods: 5
+      Statistic: Maximum
+      Threshold: 80
+      AlarmDescription: Alarm if CPU too high or metric disappears indicating instance is down
+      Period: 60
+      AlarmActions:
+      - Ref: SimpleScalingUp
+      Namespace: AWS/ECS
+      Dimensions:
+      - Name: ClusterName
+        Value:
+          Fn::ImportValue: ECScluster
+      ComparisonOperator: GreaterThanThreshold
+      MetricName: MemoryReservation
+
+  SimpleScalingDown:
+    Type: AWS::AutoScaling::ScalingPolicy
+    Properties:
+      AdjustmentType: "ChangeInCapacity"
+      PolicyType: "SimpleScaling"
+      Cooldown: "300"
+      AutoScalingGroupName:
+        Ref: ASG
+      ScalingAdjustment: -1
+
+  MemoryReservationLowAlert:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      EvaluationPeriods: 5
+      Statistic: Maximum
+      Threshold: 35
+      AlarmDescription: Alarm if CPU too high or metric disappears indicating instance is down
+      Period: 60
+      AlarmActions:
+      - Ref: SimpleScalingDown
+      Namespace: AWS/ECS
+      Dimensions:
+      - Name: ClusterName
+        Value:
+          Fn::ImportValue: ECScluster
+      ComparisonOperator: LessThanThreshold
+      MetricName: MemoryReservation
+
+  RequestHighAlert1:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      EvaluationPeriods: 5
+      Statistic: Sum
+      Threshold: 10
+      AlarmDescription: Alarm if CPU too high or metric disappears indicating instance is down
+      Period: 60
+      AlarmActions:
+      - Ref: AutoScaling
+      OKActions:
+      - Ref: AutoScaling
+      Namespace: AWS/ApplicationELB
+      Dimensions:
+      - Name: LoadBalancer
+        Value:
+          Fn::ImportValue: LoadBalancerFullName
+      ComparisonOperator: LessThanThreshold
+      MetricName: RequestCount
+
+  RequestHighAlert2:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      EvaluationPeriods: 5
+      Statistic: Sum
+      Threshold: 100
+      AlarmDescription: Alarm if CPU too high or metric disappears indicating instance is down
+      Period: 60
+      AlarmActions:
+      - Ref: AutoScaling
+      OKActions:
+      - Ref: AutoScaling
+      Namespace: AWS/ApplicationELB
+      Dimensions:
+      - Name: LoadBalancer
+        Value:
+          Fn::ImportValue: LoadBalancerFullName
+      ComparisonOperator: GreaterThanThreshold
+      MetricName: RequestCount
+
+  AutoScaling:
+    Type: AWS::ApplicationAutoScaling::ScalingPolicy
+    Properties:
+      PolicyName: ScalingUp
+      PolicyType: StepScaling
+      ScalingTargetId:
+        Fn::ImportValue: ScalableTarget
+#      ScalableDimension: ecs:service:DesiredCount
+#      ServiceNamespace: ecs
+      StepScalingPolicyConfiguration:
+        AdjustmentType: ChangeInCapacity
+        Cooldown: 180
+        MetricAggregationType: Average
+        StepAdjustments:
+          - MetricIntervalUpperBound: 10
+            ScalingAdjustment: -1
+          - MetricIntervalLowerBound: 10
+            MetricIntervalUpperBound: 100
+            ScalingAdjustment: 0
+          - MetricIntervalLowerBound: 100
+            ScalingAdjustment: 2
+########
 
 Outputs:
   ECScluster:
