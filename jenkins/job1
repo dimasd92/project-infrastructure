@@ -1,6 +1,6 @@
 node {
 parameters {
-   listGitBranches branchFilter: '.*', credentialsId: '', defaultValue: '', name: 'GitTag', quickFilterEnabled: false, remoteURL: 'https://github.com/dimasd92/spring-petclinic/', selectedValue: 'TOP', sortMode: 'DESCENDING_SMART', tagFilter: '*', type: 'PT_TAG'
+   listGitBranches branchFilter: '.*', credentialsId: '', defaultValue: '1.5.x', name: 'GitTag', quickFilterEnabled: false, remoteURL: 'https://github.com/dimasd92/spring-petclinic/', selectedValue: 'TOP', sortMode: 'DESCENDING_SMART', tagFilter: '*', type: 'PT_TAG'
 }
 
    stage('Preparation') {
