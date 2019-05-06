@@ -415,7 +415,7 @@ Resources:
       PolicyName: ScalingUp
       PolicyType: StepScaling
       ScalingTargetId:
-        Fn::ImportValue: ScalableTarget
+        Ref: ScalableTarget
       StepScalingPolicyConfiguration:
         AdjustmentType: ChangeInCapacity
         Cooldown: 180
