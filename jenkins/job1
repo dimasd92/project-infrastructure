@@ -11,7 +11,7 @@ node {
    stage('Gitss') {
          sh label: '', script: 'git config --global user.email "dimasudorov@gmail.com"'
          sh label: '', script: 'git config --global user.name "dimasd92"'
-         sh label: '', script: 'git tag -a 1.6.9'
+         sh label: '', script: 'git tag 1.6.9'
          sh label: '', script: 'git push --tags'
    }
    stage('Test petclinic') {
