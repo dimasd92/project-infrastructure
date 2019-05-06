@@ -104,25 +104,25 @@ Resources:
     DependsOn: BaseNetwork
     Properties:
       TemplateURL: https://s3-us-west-2.amazonaws.com/project-cloudformation-stack/loadbalancer.yml
-#  ECSCluster:
-#    DependsOn: DataBase
-#    Type: 'AWS::CloudFormation::Stack'
-#    Properties:
-#      TemplateURL: https://s3-us-west-2.amazonaws.com/project-cloudformation-stack/ecscluster.yml
-#      Parameters:
-#        ContainerImage: !Ref ContainerImage
-#        ContainerCPU: !Ref ContainerCPU
-#        ContainerMemory: !Ref ContainerMemory
-#        ContainerMinCapacity: !Ref ContainerMinCapacity
-#        ContainerMaxCapacity: !Ref ContainerMaxCapacity
-#        ContainerDesiredCount: !Ref ContainerDesiredCount
-#        DBUser: !Ref DBUser
-#        DBPassword: !Ref DBPassword
-#        SSHKeyName: !Ref SSHKeyName
-#        InstanceType: !Ref InstanceType
-#        AutoScalingMinCapacity: !Ref AutoScalingMinCapacity
-#        AutoScalingMaxCapacity: !Ref AutoScalingMaxCapacity
-#        AutoScalingDesiredCapacity: !Ref AutoScalingDesiredCapacity
+  ECSCluster:
+    DependsOn: DataBase
+    Type: 'AWS::CloudFormation::Stack'
+    Properties:
+      TemplateURL: https://s3-us-west-2.amazonaws.com/project-cloudformation-stack/ecscluster.yml
+      Parameters:
+        ContainerImage: !Ref ContainerImage
+        ContainerCPU: !Ref ContainerCPU
+        ContainerMemory: !Ref ContainerMemory
+        ContainerMinCapacity: !Ref ContainerMinCapacity
+        ContainerMaxCapacity: !Ref ContainerMaxCapacity
+        ContainerDesiredCount: !Ref ContainerDesiredCount
+        DBUser: !Ref DBUser
+        DBPassword: !Ref DBPassword
+        SSHKeyName: !Ref SSHKeyName
+        InstanceType: !Ref InstanceType
+        AutoScalingMinCapacity: !Ref AutoScalingMinCapacity
+        AutoScalingMaxCapacity: !Ref AutoScalingMaxCapacity
+        AutoScalingDesiredCapacity: !Ref AutoScalingDesiredCapacity
 
 #  CloudWatch:
 #    DependsOn: ECSCluster
