@@ -26,7 +26,8 @@ node {
          sh label: '', script: '$(aws ecr get-login --no-include-email --region us-west-1)'
          sh label: '', script: "docker tag petclinic:latest 069312102029.dkr.ecr.us-west-1.amazonaws.com/petclinic:v${params.GitTag}"
          sh label: '', script: "docker push 069312102029.dkr.ecr.us-west-1.amazonaws.com/petclinic:v${params.GitTag}"
-         sh label: '', script: "docker push 069312102029.dkr.ecr.us-west-1.amazonaws.com/petclinic:latest"         
+         sh label: '', script: "docker tag petclinic:latest 069312102029.dkr.ecr.us-west-1.amazonaws.com/petclinic:latest"
+         sh label: '', script: "docker push 069312102029.dkr.ecr.us-west-1.amazonaws.com/petclinic:latest"
          slackSend baseUrl: 'https://petclinicproject.slack.com/services/hooks/jenkins-ci/', channel: '#builds', color: '#439FE0', message: 'Docker image deployed to the ECR.', tokenCredentialId: '4667cb0b-4bae-494e-a110-1642908f960d'
     }
  }
