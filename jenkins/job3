@@ -4,7 +4,6 @@ node {
    }
    stage('Deploy templates to S3') {
       sh label: '', script: 'aws s3 cp main.yml s3://project-cloudformation-stack/main.yml'
-      sh label: '', script: 'aws s3 cp cloudwatch.yml s3://project-cloudformation-stack/cloudwatch.yml'
       sh label: '', script: 'aws s3 cp database.yml s3://project-cloudformation-stack/database.yml'
       sh label: '', script: 'aws s3 cp ecscluster.yml s3://project-cloudformation-stack/ecscluster.yml'
       sh label: '', script: 'aws s3 cp loadbalancer.yml s3://project-cloudformation-stack/loadbalancer.yml'
