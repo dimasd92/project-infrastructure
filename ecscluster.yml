@@ -157,6 +157,53 @@ Resources:
           yum install -y aws-cfn-bootstrap
           /opt/aws/bin/cfn-signal -e $? --stack ${AWS::StackName} --resource ASG --region ${AWS::Region}
           /opt/aws/bin/cfn-init -v --region ${AWS::Region} --stack ${AWS::StackName} --resource ECSLaunchConfiguration
+          /usr/bin/enable-ec2-spot-hibernation
+          sudo yum install -y awslogs
+          sudo systemctl start awslogsd
+          sudo systemctl enable awslogsd.service
+
+          cat > /etc/awslogs/awscli.conf << EOF
+          [default]
+          region = ${AWS::Region}
+          [plugins]
+          cwlogs = cwlogs
+          EOF
+
+          cat > /etc/awslogs/awslogs.conf << EOF
+          [general]
+          state_file = /var/lib/awslogs/agent-state
+
+          [/var/log/cloud-init.log]
+          datetime_format = %b %d %H:%M:%S
+          file = /var/log/cloud-init.log
+          log_stream_name = {instance_id}/var/log/cloud-init.log
+          log_group_name = ${InstanceLogsGroup}
+
+          [/var/log/cfn-init.log]
+          datetime_format = %Y-%m-%d %H:%M:%S
+          file = /var/log/cfn-init.log
+          log_stream_name = {instance_id}/var/log/cfn-init.log
+          log_group_name = ${InstanceLogsGroup}
+
+          [/var/log/dmesg]
+          file = /var/log/dmesg
+          log_stream_name = {instance_id}/var/log/dmesg
+          log_group_name = ${InstanceLogsGroup}
+
+          [/var/log/messages]
+          datetime_format = %b %d %H:%M:%S
+          file = /var/log/messages
+          log_stream_name = {instance_id}/var/log/messages
+          log_group_name = ${InstanceLogsGroup}
+          EOF
+
+  InstanceLogsGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Ref AWS::StackName
+      RetentionInDays: 365
+
+
 
   ASG:
     Type: AWS::AutoScaling::AutoScalingGroup
