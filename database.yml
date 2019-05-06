@@ -68,7 +68,6 @@ Resources:
 Outputs:
   JDBCConnectionString:
     Description: JDBC connection string for the database
-#    Value: !Join ['', ['jdbc:mysql://', !GetAtt [DataBase, Endpoint.Address], ':', !GetAtt [DataBase, Endpoint.Port], /, !Ref 'DBName]]
     Value: !Join ['', ['jdbc:mysql://', !GetAtt [DataBase, Endpoint.Address], ':', !GetAtt [
           DataBase, Endpoint.Port], /, !Ref 'DBName']]
     Export:

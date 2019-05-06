@@ -79,11 +79,10 @@ Resources:
 
   PrivateRoute:
     Type: AWS::EC2::Route
-#    DependsOn: InternetGateway
     Properties:
       RouteTableId:
         Ref: PrivateRouteTable
-      DestinationCidrBlock: 0.0.0.0/0 ##########################??????????????????????
+      DestinationCidrBlock: 0.0.0.0/0
       GatewayId:
         Ref: InternetGateway
 
@@ -123,7 +122,6 @@ Resources:
 
   PublicRoute:
     Type: AWS::EC2::Route
-#    DependsOn: InternetGateway
     Properties:
       RouteTableId:
         Ref: PublicRouteTable
