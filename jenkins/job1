@@ -5,8 +5,6 @@ node {
    stage('Preparation') {
          slackSend baseUrl: 'https://petclinicproject.slack.com/services/hooks/jenkins-ci/', channel: '#builds', color: '#439FE0', message: "Building the app started. Version - ${params.GitTag}", tokenCredentialId: '4667cb0b-4bae-494e-a110-1642908f960d'
          git 'https://github.com/dimasd92/spring-petclinic'
-         sh label: '', script: "git tag -a 1.6.9"
-         sh label: '', script: "git push --tags"
          mvnHome = tool 'Maven'
 
    stage('Gitss') {
