@@ -107,7 +107,7 @@ Mappings:
     us-gov-west-1:
       AMI: ami-a842dcc9
     us-west-1:
-      AMI: ami-0de5608ca20c07aa2
+      AMI: ami-0860832102c806acb
     us-west-2:
       AMI: ami-0302f3ec240b9d23c
 
@@ -122,6 +122,9 @@ Resources:
           Principal:
             Service: [ec2.amazonaws.com]
           Action: ['sts:AssumeRole']
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AmazonEC2RoleforSSM
+        - arn:aws:iam::aws:policy/CloudWatchAgentServerPolicy
       Path: /
       Policies:
       - PolicyName: ecs-service
@@ -130,7 +133,17 @@ Resources:
           - Effect: Allow
             Action: ['ecs:CreateCluster', 'ecs:DeregisterContainerInstance', 'ecs:DiscoverPollEndpoint',
               'ecs:Poll', 'ecs:RegisterContainerInstance', 'ecs:StartTelemetrySession',
-              'ecs:Submit*', 'logs:CreateLogStream', 'logs:PutLogEvents', 'logs:DescribeLogStreams', 'ecr:BatchCheckLayerAvailability', 'ecr:BatchGetImage', 'ecr:GetDownloadUrlForLayer', 'ecr:GetAuthorizationToken']
+              'ecs:Submit*', 'logs:CreateLogStream', 'logs:PutLogEvents', 'logs:DescribeLogStreams', 'logs:CreateLogGroup"', 'ecr:BatchCheckLayerAvailability', 'ecr:BatchGetImage', 'ecr:GetDownloadUrlForLayer', 'ecr:GetAuthorizationToken']
+            Resource: '*'
+      - PolicyName: logs
+        PolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+          - Effect: Allow
+            Action:
+            - 'logs:CreateLogStream'
+            - 'logs:PutLogEvents'
+            - 'logs:DescribeLogStreams'
             Resource: '*'
 
   EC2InstanceProfile:
@@ -157,10 +170,9 @@ Resources:
           yum install -y aws-cfn-bootstrap
           /opt/aws/bin/cfn-signal -e $? --stack ${AWS::StackName} --resource ASG --region ${AWS::Region}
           /opt/aws/bin/cfn-init -v --region ${AWS::Region} --stack ${AWS::StackName} --resource ECSLaunchConfiguration
-          /usr/bin/enable-ec2-spot-hibernation
           sudo yum install -y awslogs
-          sudo systemctl start awslogsd
-          sudo systemctl enable awslogsd.service
+          sudo service awslogs start
+          sudo chkconfig awslogs on
 
           cat > /etc/awslogs/awscli.conf << EOF
           [default]
@@ -175,36 +187,37 @@ Resources:
 
           [/var/log/dmesg]
           file = /var/log/dmesg
-          log_stream_name = {instance_id}-{hostname}
-          log_group_name = ${InstanceLogsGroups}
+          log_group_name = ${InstanceLogsGroup}
 
           [/var/log/messages]
           datetime_format = %b %d %H:%M:%S
           file = /var/log/messages
-          log_stream_name = {instance_id}-{hostname}
-          log_group_name = ${InstanceLogsGroups}
+          log_stream_name = {instance_id}/var/log/messages
+          initial_position = start_of_file
+          log_group_name = ${InstanceLogsGroup}
 
           [/var/log/cloud-init.log]
           datetime_format = %b %d %H:%M:%S
           file = /var/log/cloud-init.log
-          log_stream_name = {instance_id}-{hostname}
-          log_group_name = ${InstanceLogsGroups}
+          log_stream_name = {instance_id}/var/log/cloud-init.log
+          initial_position = start_of_file
+          log_group_name = ${InstanceLogsGroup}
 
           [/var/log/cfn-init.log]
           datetime_format = %Y-%m-%d %H:%M:%S
           file = /var/log/cfn-init.log
-          log_stream_name = {instance_id}-{hostname}
-          log_group_name = ${InstanceLogsGroups}
+          log_stream_name = {instance_id}/var/log/cfn-init.log
+          initial_position = start_of_file
+          log_group_name = ${InstanceLogsGroup}
           EOF
 
-          #restart cloudwatch agent
-          sudo systemctl restart awslogsd
+          sudo service awslogs restart
 
 
-  InstanceLogsGroups:
+  InstanceLogsGroup:
     Type: AWS::Logs::LogGroup
     Properties:
-      LogGroupName: !Ref AWS::StackName
+      LogGroupName: InstanceLogsGroup
       RetentionInDays: 365
 
 
