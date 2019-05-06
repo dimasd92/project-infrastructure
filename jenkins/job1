@@ -18,14 +18,14 @@ node {
          slackSend baseUrl: 'https://petclinicproject.slack.com/services/hooks/jenkins-ci/', channel: '#builds', color: '#439FE0', message: 'Petclinic app built', tokenCredentialId: '4667cb0b-4bae-494e-a110-1642908f960d'
    }
    stage('Build docker image') {
-         sh label: '', script: 'wget -O tomcat/tomcat-users.xml https://s3-us-west-2.amazonaws.com/project.public/tomcat-users.xml'
+         sh label: '', script: 'wget -O tomcat/tomcat-users.xml https://s3-us-west-1.amazonaws.com/project.petclinic-west1/tomcat-users.xml'
          sh label: '', script: 'docker build -t petclinic .'
          slackSend baseUrl: 'https://petclinicproject.slack.com/services/hooks/jenkins-ci/', channel: '#builds', color: '#439FE0', message: 'Docker image built', tokenCredentialId: '4667cb0b-4bae-494e-a110-1642908f960d'
    }
    stage('Deploy Docker image to ECR') {
-         sh label: '', script: '$(aws ecr get-login --no-include-email --region us-west-2)'
-         sh label: '', script: "docker tag petclinic:latest 069312102029.dkr.ecr.us-west-2.amazonaws.com/petclinic:v${params.GitTag}"
-         sh label: '', script: "docker push 069312102029.dkr.ecr.us-west-2.amazonaws.com/petclinic:v${params.GitTag}"
+         sh label: '', script: '$(aws ecr get-login --no-include-email --region us-west-1)'
+         sh label: '', script: "docker tag petclinic:latest 069312102029.dkr.ecr.us-west-1.amazonaws.com/petclinic:v${params.GitTag}"
+         sh label: '', script: "docker push 069312102029.dkr.ecr.us-west-1.amazonaws.com/petclinic:v${params.GitTag}"
          slackSend baseUrl: 'https://petclinicproject.slack.com/services/hooks/jenkins-ci/', channel: '#builds', color: '#439FE0', message: 'Docker image deployed to the ECR.', tokenCredentialId: '4667cb0b-4bae-494e-a110-1642908f960d'
     }
  }
