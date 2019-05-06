@@ -3,7 +3,7 @@ node {
       git credentialsId: '3fe30454-33d2-4c2d-9c0b-390c74b0de29', url: 'https://github.com/dimasd92/project-infrastructure'
    }
    stage('Test with Cfn-linter') {
-      sh label: '', script: 'cfn-lint -i W3010 -t *yml'
+      sh label: '', script: 'cfn-lint -i W3010 W2001 -t *yml'
    }
    stage('Deploy templates to S3') {
       sh label: '', script: 'aws s3 cp main.yml s3://project-cloudformation-stack/main.yml'
