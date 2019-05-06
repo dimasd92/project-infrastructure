@@ -32,7 +32,7 @@ Parameters:
   ContainerImage:
     Description: Container image
     Type: String
-    Default: 069312102029.dkr.ecr.us-west-2.amazonaws.com/petclinic:latest
+    Default: 069312102029.dkr.ecr.us-west-1.amazonaws.com/petclinic:latest
 
   ContainerCPU:
     Description: Container CPU reservation
