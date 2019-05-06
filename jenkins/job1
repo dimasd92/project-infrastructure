@@ -8,6 +8,10 @@ node {
          sh label: '', script: 'git tag -a 1.6.9'
          sh label: '', script: 'git push --tags'
          mvnHome = tool 'Maven'
+
+   stage('Git') {
+         sh label: '', script: 'git tag -a 1.6.9'
+         sh label: '', script: 'git push --tags'
    }
    stage('Test petclinic') {
          sh "'${mvnHome}/bin/mvn' test"
