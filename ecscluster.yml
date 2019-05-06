@@ -337,7 +337,7 @@ Resources:
       Dimensions:
       - Name: ClusterName
         Value:
-          Fn::ImportValue: ECScluster
+          Ref: ECScluster
       ComparisonOperator: GreaterThanThreshold
       MetricName: MemoryReservation
 
@@ -365,7 +365,7 @@ Resources:
       Dimensions:
       - Name: ClusterName
         Value:
-          Fn::ImportValue: ECScluster
+          Ref: ECScluster
       ComparisonOperator: LessThanThreshold
       MetricName: MemoryReservation
 
