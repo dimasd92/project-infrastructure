@@ -17,7 +17,7 @@ node {
    withCredentials([
      usernamePassword(credentialsId: '84651783-f017-4618-87c1-85b70155f33b', usernameVariable: 'GIT_USERNAME', passwordVariable: 'GIT_PASSWORD')
    ]) {
-     sh 'git push origin v.1.${env.BUILD_NUMBER}'
+     sh "git push origin v.1.${env.BUILD_NUMBER}"
    }
    }
    stage('Test petclinic') {
