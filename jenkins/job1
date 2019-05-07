@@ -12,12 +12,11 @@ node {
    sh label: '', script: 'git remote set-url origin https://$GIT_USERNAME:$GIT_PASSWORD@github.com/dimasd92/spring-petclinic.git'
    sh label: '', script: 'git config --global user.email "dimasudorov@gmail.com"'
    sh label: '', script: 'git config --global user.name "dimasd92"'
-   sh 'git tag -f -m "" v.1.${env.BUILD_NUMBER}'
-   sh 'git push origin v.1.${env.BUILD_NUMBER}'
+   sh 'git tag -f v.1.${env.BUILD_NUMBER}'
    withCredentials([
      usernamePassword(credentialsId: '84651783-f017-4618-87c1-85b70155f33b', usernameVariable: 'GIT_USERNAME', passwordVariable: 'GIT_PASSWORD')
    ]) {
-
+     sh 'git push origin v.1.${env.BUILD_NUMBER}'
    }
    }
    stage('Test petclinic') {
