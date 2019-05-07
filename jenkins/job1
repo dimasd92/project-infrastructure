@@ -1,21 +1,18 @@
 parameters {
-  credentials credentialType: 'com.cloudbees.plugins.credentials.common.StandardCredentials', defaultValue: 'fbf637e1-9b94-4d53-9ea8-d7718fc187e1', description: '', name: 'GitPassword', required: true
-}
-parameters {
    listGitBranches branchFilter: '.*', credentialsId: '', defaultValue: '1.5.x', name: 'GitTag', quickFilterEnabled: false, remoteURL: 'https://github.com/dimasd92/spring-petclinic/', selectedValue: 'TOP', sortMode: 'DESCENDING_SMART', tagFilter: '*', type: 'PT_TAG'
 }
 node {
    stage('Preparation') {
          slackSend baseUrl: 'https://petclinicproject.slack.com/services/hooks/jenkins-ci/', channel: '#builds', color: '#439FE0', message: "Building the app started. Version - ${params.GitTag}", tokenCredentialId: '4667cb0b-4bae-494e-a110-1642908f960d'
-         git credentialsId: '84651783-f017-4618-87c1-85b70155f33b', url: 'https://github.com/dimasd92/spring-petclinic'
+         git 'https://github.com/dimasd92/spring-petclinic'
          mvnHome = tool 'Maven'
-
    }
+
    stage('Git') {
-   sh label: '', script: 'git remote set-url origin https://$(GIT_USERNAME):$(GIT_PASSWORD)@github.com/dimasd92/spring-petclinic.git'
+   sh label: '', script: 'git remote set-url origin https://$GIT_USERNAME:$GIT_PASSWORD@github.com/dimasd92/spring-petclinic.git'
    sh label: '', script: 'git config --global user.email "dimasudorov@gmail.com"'
    sh label: '', script: 'git config --global user.name "dimasd92"'
-   sh "git tag -f v.1.${env.BUILD_NUMBER}"
+   sh 'git tag -f -m "" v.1.${env.BUILD_NUMBER}'
    withCredentials([
      usernamePassword(credentialsId: '3fe30454-33d2-4c2d-9c0b-390c74b0de29', usernameVariable: 'GIT_USERNAME', passwordVariable: 'GIT_PASSWORD')
    ]) {
