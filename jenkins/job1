@@ -2,27 +2,19 @@ parameters {
    listGitBranches branchFilter: '.*', credentialsId: '', defaultValue: '1.5.x', name: 'GitTag', quickFilterEnabled: false, remoteURL: 'https://github.com/dimasd92/spring-petclinic/', selectedValue: 'TOP', sortMode: 'DESCENDING_SMART', tagFilter: '*', type: 'PT_TAG'
 }
 node {
-  stage('Preparation') {
-       slackSend baseUrl: 'https://petclinicproject.slack.com/services/hooks/jenkins-ci/', channel: '#builds', color: '#439FE0', message: "Building the app started. Version - ${params.GitTag}", tokenCredentialId: '4667cb0b-4bae-494e-a110-1642908f960d'
-       git 'https://github.com/dimasd92/spring-petclinic'
-       }
+   stage('Preparation') {
+         slackSend baseUrl: 'https://petclinicproject.slack.com/services/hooks/jenkins-ci/', channel: '#builds', color: '#439FE0', message: "Building the app started. Version - ${params.GitTag}", tokenCredentialId: '4667cb0b-4bae-494e-a110-1642908f960d'
+         git 'https://github.com/dimasd92/spring-petclinic'
+         }
 
+   stage('Tagging the build') {
+         withCredentials([usernamePassword(credentialsId: 'f5cad86a-f6f4-4046-a243-a10b31177dd6', usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD')]) {
+         sh "git tag -f v.2.0.${env.BUILD_NUMBER}"
+         sh 'git push https://$USERNAME:$PASSWORD@github.com/dimasd92/spring-petclinic --tags'
+         slackSend baseUrl: 'https://petclinicproject.slack.com/services/hooks/jenkins-ci/', channel: '#builds', color: '#439FE0', message: "Build tagged with Version 2.0.${env.BUILD_NUMBER}", tokenCredentialId: '4667cb0b-4bae-494e-a110-1642908f960d'
+           }
+         }
 
-       stage('Tag to SCM') {
-       withCredentials([usernamePassword(credentialsId: 'f5cad86a-f6f4-4046-a243-a10b31177dd6', usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD')]) {
-       sh "git tag -f v.2.0.${env.BUILD_NUMBER}"
-       sh 'git push https://$USERNAME:$PASSWORD@github.com/dimasd92/spring-petclinic --tags'
-       }
-       }
-
-
-
-   stage('Git') {
-
-   sh "git tag -f v.1.${env.BUILD_NUMBER}"
-   sh "git push origin v.1.${env.BUILD_NUMBER}"
-
-   }
    stage('Test petclinic') {
          sh "'${mvnHome}/bin/mvn' test"
          slackSend baseUrl: 'https://petclinicproject.slack.com/services/hooks/jenkins-ci/', channel: '#builds', color: '#439FE0', message: 'Tests passed successfully', tokenCredentialId: '4667cb0b-4bae-494e-a110-1642908f960d'
