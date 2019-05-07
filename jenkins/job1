@@ -2,6 +2,7 @@ node {
    stage('Preparation') {
          slackSend baseUrl: 'https://petclinicproject.slack.com/services/hooks/jenkins-ci/', channel: '#builds', color: '#439FE0', message: "Building the app started. Version - ${params.GitTag}", tokenCredentialId: '4667cb0b-4bae-494e-a110-1642908f960d'
          git 'https://github.com/dimasd92/spring-petclinic'
+         mvnHome = tool 'Maven'
          }
    stage('Tagging the build') {
          withCredentials([usernamePassword(credentialsId: 'f5cad86a-f6f4-4046-a243-a10b31177dd6', usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD')]) {
