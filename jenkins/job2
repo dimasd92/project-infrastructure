@@ -1,9 +1,5 @@
 node {
 
-    environment {
-      TEST = "sh label: '', script: 'git ls-remote --refs https://dimasd92:Dima26gitt1026@github.com/dimasd92/spring-petclinic | grep -oP v.*'"
-    }
-
    stage('Preparation') {
       git credentialsId: 'f5cad86a-f6f4-4046-a243-a10b31177dd6', url: 'https://github.com/dimasd92/project-infrastructure'
    }
@@ -11,20 +7,6 @@ node {
       sh label: '', script: 'aws s3 cp ecscluster.yml s3://project-cloudformation-stack/ecscluster.yml'
    }
    stage('Build infrastructure') {
-         sh label: '', script: 'aws cloudformation deploy --template-file ecscluster.yml --parameter-overrides ContainerImage=069312102029.dkr.ecr.us-west-1.amazonaws.com/petclinic:${TERER} --capabilities CAPABILITY_IAM CAPABILITY_NAMED_IAM --stack-name $StackName'
+         sh label: '', script: 'aws cloudformation deploy --template-file ecscluster.yml --parameter-overrides ContainerImage=069312102029.dkr.ecr.us-west-1.amazonaws.com/petclinic:${TAG} --capabilities CAPABILITY_IAM CAPABILITY_NAMED_IAM --stack-name $StackName'
    }
 }
-
-
-parameters {
-   listGitBranches branchFilter: '.*', credentialsId: '', defaultValue: '1.5.x', name: 'GitTag', quickFilterEnabled: false, remoteURL: 'https://github.com/dimasd92/spring-petclinic/', selectedValue: 'TOP', sortMode: 'DESCENDING_SMART', tagFilter: '*', type: 'PT_TAG'
-}
-
-
-
-def command = '''
-    git ls-remote --refs https://dimasd92:Dima26gitt1026@github.com/dimasd92/spring-petclinic | grep -oP v.*
-'''
-def proc = ['bash', '-c', command].execute()
-proc.waitFor()
-println proc.text
