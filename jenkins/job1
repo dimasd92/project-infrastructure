@@ -15,7 +15,7 @@ node {
    withCredentials([
      usernamePassword(credentialsId: '3fe30454-33d2-4c2d-9c0b-390c74b0de29', usernameVariable: 'dimasd92', passwordVariable: 'Dima92git2461009')
    ]) {
-     sh 'git push origin 1.7'
+     sh 'git push -f origin 1.7'
    }
 
    sh label: '', script: 'git config --global user.email "dimasudorov@gmail.com"'
