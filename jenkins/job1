@@ -11,9 +11,6 @@ node {
          mvnHome = tool 'Maven'
    }
    stage('Git') {
-   sh label: '', script: 'git remote set-url origin https://github.com/dimasd92/spring-petclinic'
-   sh label: '', script: 'git config --global user.email "dimasudorov@gmail.com"'
-   sh label: '', script: 'git config --global user.name "dimasd92"'
    sh "git tag -f v.1.${env.BUILD_NUMBER}"
 
      sh 'git push origin v.1.${env.BUILD_NUMBER}'
