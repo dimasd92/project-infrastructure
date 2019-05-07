@@ -9,7 +9,7 @@ node {
          sh label: '', script: 'git config --global user.email "dimasudorov@gmail.com"'
          sh label: '', script: 'git config --global user.name "dimasd92"'
          sh label: '', script: 'git tag -f 1.6.9'
-         sh label: '', script: 'git push --tags'
+         sh label: '', script: 'git push origin --tags'
    }
 
    stage('Gitss') {
