@@ -124,12 +124,6 @@ Resources:
         AutoScalingMaxCapacity: !Ref AutoScalingMaxCapacity
         AutoScalingDesiredCapacity: !Ref AutoScalingDesiredCapacity
 
-#  CloudWatch:
-#    DependsOn: ECSCluster
-#    Type: 'AWS::CloudFormation::Stack'
-#    Properties:
-#      TemplateURL: https://s3-us-west-2.amazonaws.com/project-cloudformation-stack/cloudwatch.yml
-
   DataBase:
     DependsOn: BaseNetwork
     Type: 'AWS::CloudFormation::Stack'
