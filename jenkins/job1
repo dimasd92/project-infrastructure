@@ -12,7 +12,7 @@ node {
 
    }
    stage('Git') {
-   sh label: '', script: 'git remote set-url origin https://$(GIT_USERNAME):$(GIT_PASSWORD)@github.com/dimasd92/spring-petclinic'
+   sh label: '', script: 'git remote set-url origin https://$(GIT_USERNAME):$(GIT_PASSWORD)@github.com/dimasd92/spring-petclinic.git'
    sh label: '', script: 'git config --global user.email "dimasudorov@gmail.com"'
    sh label: '', script: 'git config --global user.name "dimasd92"'
    sh "git tag -f v.1.${env.BUILD_NUMBER}"
