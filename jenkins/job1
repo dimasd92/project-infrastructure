@@ -1,4 +1,7 @@
 parameters {
+  credentials credentialType: 'com.cloudbees.plugins.credentials.common.StandardCredentials', defaultValue: 'fbf637e1-9b94-4d53-9ea8-d7718fc187e1', description: '', name: 'GitPassword', required: true
+}
+parameters {
    listGitBranches branchFilter: '.*', credentialsId: '', defaultValue: '1.5.x', name: 'GitTag', quickFilterEnabled: false, remoteURL: 'https://github.com/dimasd92/spring-petclinic/', selectedValue: 'TOP', sortMode: 'DESCENDING_SMART', tagFilter: '*', type: 'PT_TAG'
 }
 node {
@@ -8,7 +11,7 @@ node {
          mvnHome = tool 'Maven'
    }
    stage('Git') {
-   sh label: '', script: 'git remote set-url origin https://$(User):$(Password)@github.com/dimasd92/spring-petclinic.git'
+   sh label: '', script: 'git remote set-url origin https://dimasd92:$(params.GitPassword)@github.com/dimasd92/spring-petclinic.git'
    sh label: '', script: 'git config --global user.email "dimasudorov@gmail.com"'
    sh label: '', script: 'git config --global user.name "dimasd92"'
    sh 'git tag -f -m "" v.1.${env.BUILD_NUMBER}'
