@@ -4,7 +4,7 @@ parameters {
 node {
    stage('Preparation') {
          slackSend baseUrl: 'https://petclinicproject.slack.com/services/hooks/jenkins-ci/', channel: '#builds', color: '#439FE0', message: "Building the app started. Version - ${params.GitTag}", tokenCredentialId: '4667cb0b-4bae-494e-a110-1642908f960d'
-         git credentialsId: '84651783-f017-4618-87c1-85b70155f33b', url: 'https://github.com/dimasd92/spring-petclinic'
+         git 'git@github.com:dimasd92/spring-petclinic.git'
          mvnHome = tool 'Maven'
          sh label: '', script: 'eval "$(ssh-agent)" && ssh-add /var/lib/jenkins/.ssh/pet && ssh -T git@github.com
          }
