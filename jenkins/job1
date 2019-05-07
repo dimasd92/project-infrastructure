@@ -11,17 +11,14 @@ node {
          mvnHome = tool 'Maven'
    }
    stage('Git') {
-   sh label: '', script: 'git remote set-url origin https://dimasd92:fbf637e1-9b94-4d53-9ea8-d7718fc187e1"@github.com/dimasd92/spring-petclinic.git'
    sh label: '', script: 'git remote set-url origin https://github.com/dimasd92/spring-petclinic'
    sh label: '', script: 'git config --global user.email "dimasudorov@gmail.com"'
    sh label: '', script: 'git config --global user.name "dimasd92"'
    sh "git tag -f v.1.${env.BUILD_NUMBER}"
-   withCredentials([
-     usernamePassword(credentialsId: '3fe30454-33d2-4c2d-9c0b-390c74b0de29', usernameVariable: 'GIT_USERNAME', passwordVariable: 'GIT_PASSWORD')
-   ]) {
+
      sh 'git push origin v.1.${env.BUILD_NUMBER}'
-   }
-   }
+      }
+      
    stage('Test petclinic') {
          sh "'${mvnHome}/bin/mvn' test"
          slackSend baseUrl: 'https://petclinicproject.slack.com/services/hooks/jenkins-ci/', channel: '#builds', color: '#439FE0', message: 'Tests passed successfully', tokenCredentialId: '4667cb0b-4bae-494e-a110-1642908f960d'
