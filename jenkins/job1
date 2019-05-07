@@ -13,9 +13,11 @@ node {
    sh label: '', script: 'git config --global user.email "dimasudorov@gmail.com"'
    sh label: '', script: 'git config --global user.name "dimasd92"'
    sh 'git tag -f -m "" v.1.${env.BUILD_NUMBER}'
-
+   withCredentials([
+     usernamePassword(credentialsId: '3fe30454-33d2-4c2d-9c0b-390c74b0de29', usernameVariable: '$GIT_USERNAME', passwordVariable: '$GIT_PASSWORD')
+   ]) {
      sh 'git push origin v.1.${env.BUILD_NUMBER}'
-
+   }
    }
    stage('Test petclinic') {
          sh "'${mvnHome}/bin/mvn' test"
