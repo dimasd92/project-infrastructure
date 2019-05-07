@@ -9,3 +9,8 @@ node {
          sh label: '', script: 'aws cloudformation deploy --template-file ecscluster.yml --parameter-overrides ContainerImage=$ContainerImage --capabilities CAPABILITY_IAM CAPABILITY_NAMED_IAM --stack-name $StackName'
    }
 }
+
+
+parameters {
+   listGitBranches branchFilter: '.*', credentialsId: '', defaultValue: '1.5.x', name: 'GitTag', quickFilterEnabled: false, remoteURL: 'https://github.com/dimasd92/spring-petclinic/', selectedValue: 'TOP', sortMode: 'DESCENDING_SMART', tagFilter: '*', type: 'PT_TAG'
+}
