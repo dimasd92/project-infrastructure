@@ -13,7 +13,7 @@ node {
 
    sh 'git tag -f -m "" 1.7'
    withCredentials([
-     usernamePassword(credentialsId: '3fe30454-33d2-4c2d-9c0b-390c74b0de29', usernameVariable: 'dimasd92', passwordVariable: 'Dima92git2461009')
+     usernamePassword(credentialsId: '3fe30454-33d2-4c2d-9c0b-390c74b0de29', usernameVariable: 'GIT_USERNAME', passwordVariable: 'GIT_PASSWORD')
    ]) {
      sh 'git push origin 1.7'
    }
