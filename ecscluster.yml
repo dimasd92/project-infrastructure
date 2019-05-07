@@ -220,7 +220,6 @@ Resources:
       LogGroupName: InstanceLogsGroup
       RetentionInDays: 365
 
-
   ASG:
     Type: AWS::AutoScaling::AutoScalingGroup
     CreationPolicy:
@@ -256,7 +255,6 @@ Resources:
       - Key: Name
         Value: Project
         PropagateAtLaunch: true
-
 
   AmazonEC2ContainerServiceRole:
     Type: AWS::IAM::Role
@@ -344,7 +342,6 @@ Resources:
       LogGroupName: !Ref AWS::StackName
       RetentionInDays: 365
 
-
   service:
     Type: AWS::ECS::Service
     Properties:
@@ -373,7 +370,6 @@ Resources:
       ScalableDimension: ecs:service:DesiredCount
       ServiceNamespace: ecs
 
-#############CloudWatch
   SimpleScalingUp:
     Type: AWS::AutoScaling::ScalingPolicy
     Properties:
@@ -489,7 +485,6 @@ Resources:
             ScalingAdjustment: 0
           - MetricIntervalLowerBound: 100
             ScalingAdjustment: 2
-########
 
 Outputs:
   ECScluster:
