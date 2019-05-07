@@ -7,7 +7,7 @@ node {
 
          mvnHome = tool 'Maven'
          sh label: '', script: ' eval `ssh-agent`'
-         sh label: '', script: 'ssh-add ~/.ssh/pet'
+         sh label: '', script: 'ssh-add /var/lib/jenkins/.ssh/pet'
          sh label: '', script: 'ssh -T git@github.com'
    }
 
