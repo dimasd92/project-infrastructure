@@ -6,11 +6,8 @@ node {
          slackSend baseUrl: 'https://petclinicproject.slack.com/services/hooks/jenkins-ci/', channel: '#builds', color: '#439FE0', message: "Building the app started. Version - ${params.GitTag}", tokenCredentialId: '4667cb0b-4bae-494e-a110-1642908f960d'
 
          mvnHome = tool 'Maven'
-         sh label: '', script: ' eval `ssh-agent`'
-         sh label: '', script: 'ssh-add /var/lib/jenkins/.ssh/pet'
-         sh label: '', script: "whoami"
-         sh label: '', script: "pwd"
-         sh label: '', script: "ssh -T git@github.com"
+         sh label: '', script: 'eval "$(ssh-agent)" && ssh-add /var/lib/jenkins/.ssh/pet && ssh -T git@github.com'
+
 
    }
 
