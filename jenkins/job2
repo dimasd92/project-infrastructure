@@ -2,7 +2,7 @@ node {
 
    stage('Preparation') {
       git credentialsId: 'f5cad86a-f6f4-4046-a243-a10b31177dd6', url: 'https://github.com/dimasd92/project-infrastructure'
-      def ECS = "sh label: '', script: 'aws cloudformation list-stacks | grep ECSCluster | grep StackName | head -1 | grep -Po "(?<=:)[^.\']*(?=\\,)" | tr -d \'"\' | cut -c 2-'"
+      def ECS = (sh label: '', script: 'aws cloudformation list-stacks | grep ECSCluster | grep StackName | head -1 | grep -Po "(?<=:)[^.\']*(?=\\,)" | tr -d \'"\' | cut -c 2-')
       sh "echo ${ECS}"
    }
    stage('Deploy templates to S3') {
