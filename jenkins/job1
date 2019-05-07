@@ -6,6 +6,7 @@ node {
          slackSend baseUrl: 'https://petclinicproject.slack.com/services/hooks/jenkins-ci/', channel: '#builds', color: '#439FE0', message: "Building the app started. Version - ${params.GitTag}", tokenCredentialId: '4667cb0b-4bae-494e-a110-1642908f960d'
          git 'https://github.com/dimasd92/spring-petclinic'
          mvnHome = tool 'Maven'
+         sh label: '', script: 'git remote add origin https://{dimasd92}:{Dima92git2461009}@github.com/{dimasd92}/spring-petclinic.git'
          sh label: '', script: 'git config --global user.email "dimasudorov@gmail.com"'
          sh label: '', script: 'git config --global user.name "dimasd92"'
          sh label: '', script: 'git tag -f 1.6.9'
