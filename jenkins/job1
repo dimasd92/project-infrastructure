@@ -9,6 +9,8 @@ node {
          sh label: '', script: ' eval `ssh-agent`'
          sh label: '', script: 'ssh-add /var/lib/jenkins/.ssh/pet'
          sh label: '', script: 'ssh -T git@github.com'
+         sh label: '', script: 'whoami'
+         sh label: '', script: 'pwd'
    }
 
    stage('Git') {
