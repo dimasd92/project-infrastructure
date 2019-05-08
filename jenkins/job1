@@ -23,7 +23,7 @@ node {
          sh label: '', script: "docker push 069312102029.dkr.ecr.us-west-1.amazonaws.com/petclinic:v.2.0.${env.BUILD_NUMBER}"
          sh label: '', script: "docker tag petclinic:latest 069312102029.dkr.ecr.us-west-1.amazonaws.com/petclinic:latest"
          sh label: '', script: "docker push 069312102029.dkr.ecr.us-west-1.amazonaws.com/petclinic:latest"
-         slackSend baseUrl: 'https://petclinicproject.slack.com/services/hooks/jenkins-ci/', channel: '#builds', color: '#439FE0', message: 'Docker image deployed to the ECR.', tokenCredentialId: '9a1a602e-1742-4b7a-aace-f25d67d77c45'
+         slackSend baseUrl: 'https://petclinicproject.slack.com/services/hooks/jenkins-ci/', channel: '#builds', color: '#439FE0', message: "Docker image deployed to the ECR. version 2.0.${env.BUILD_NUMBER}", tokenCredentialId: '9a1a602e-1742-4b7a-aace-f25d67d77c45'
          }
    stage('Tagging the build') {
          withCredentials([usernamePassword(credentialsId: 'f5cad86a-f6f4-4046-a243-a10b31177dd6', usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD')]) {
