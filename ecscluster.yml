@@ -319,6 +319,7 @@ Resources:
           PortMappings:
             - ContainerPort: 8080
           Memory: !Ref ContainerMemory
+          MemoryReservation: 330
           Essential: true
           LogConfiguration:
             LogDriver: awslogs
@@ -378,7 +379,7 @@ Resources:
       Cooldown: "420"
       AutoScalingGroupName:
         Ref: ASG
-      ScalingAdjustment: 5
+      ScalingAdjustment: 1
 
   MemoryReservationHighAlert:
     Type: AWS::CloudWatch::Alarm
