@@ -348,7 +348,7 @@ Resources:
       Cluster: !Ref ECScluster
       DeploymentConfiguration:
         MaximumPercent: 200
-        MinimumHealthyPercent: 50
+        MinimumHealthyPercent: 100
       DesiredCount: !Ref ContainerDesiredCount
       LoadBalancers:
         - ContainerName: petclinic
@@ -375,10 +375,10 @@ Resources:
     Properties:
       AdjustmentType: "ChangeInCapacity"
       PolicyType: "SimpleScaling"
-      Cooldown: "300"
+      Cooldown: "420"
       AutoScalingGroupName:
         Ref: ASG
-      ScalingAdjustment: 1
+      ScalingAdjustment: 5
 
   MemoryReservationHighAlert:
     Type: AWS::CloudWatch::Alarm
@@ -403,7 +403,7 @@ Resources:
     Properties:
       AdjustmentType: "ChangeInCapacity"
       PolicyType: "SimpleScaling"
-      Cooldown: "300"
+      Cooldown: "420"
       AutoScalingGroupName:
         Ref: ASG
       ScalingAdjustment: -1
@@ -412,8 +412,8 @@ Resources:
     Type: AWS::CloudWatch::Alarm
     Properties:
       EvaluationPeriods: 5
-      Statistic: Maximum
-      Threshold: 35
+      Statistic: Average
+      Threshold: 32
       AlarmDescription: Alarm if CPU too high or metric disappears indicating instance is down
       Period: 60
       AlarmActions:
@@ -475,7 +475,7 @@ Resources:
         Ref: ScalableTarget
       StepScalingPolicyConfiguration:
         AdjustmentType: ChangeInCapacity
-        Cooldown: 180
+        Cooldown: 420
         MetricAggregationType: Average
         StepAdjustments:
           - MetricIntervalUpperBound: 10

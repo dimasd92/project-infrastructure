@@ -1,5 +1,6 @@
 node {
    stage('Preparation') {
+         sh label: '', script: 'echo $PATH'
          slackSend baseUrl: 'https://petclinicproject.slack.com/services/hooks/jenkins-ci/', channel: '#builds', color: '#00FF00', message: "Building the app started. Version 2.0.${env.BUILD_NUMBER}", tokenCredentialId: '9a1a602e-1742-4b7a-aace-f25d67d77c45'
          git 'https://github.com/dimasd92/spring-petclinic'
          mvnHome = tool 'Maven'

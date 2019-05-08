@@ -10,10 +10,10 @@ Resources:
         Fn::ImportValue: VPC
       Port: 80
       Protocol: HTTP
-      HealthCheckIntervalSeconds: 60
+      HealthCheckIntervalSeconds: 120
       HealthCheckPath: /
       HealthCheckProtocol: HTTP
-      HealthCheckTimeoutSeconds: 30
+      HealthCheckTimeoutSeconds: 60
       HealthyThresholdCount: 2
       UnhealthyThresholdCount: 2
 
