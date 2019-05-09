@@ -14,7 +14,7 @@ node {
    }
    stage('Build infrastructure') {
          sh label: '', script: 'aws cloudformation deploy --template-file main.yml --parameter-overrides DBPassword=$DBPassword DBUser=$DBUser SSHKeyName=$SSHKeyName \
-                                ContainerImage=$ContainerImage ContainerCPU=$ContainerCPU ContainerMemory=$ContainerMemory ContainerMinCapacity=$ContainerMinCapacity \
+                                ContainerImage=$ContainerImage ContainerMinCapacity=$ContainerMinCapacity \
                                 ContainerMaxCapacity=$ContainerMaxCapacity ContainerDesiredCount=$ContainerDesiredCount InstanceType=$InstanceType \
                                 AutoScalingMinCapacity=$AutoScalingMinCapacity AutoScalingMaxCapacity=$AutoScalingMaxCapacity AutoScalingDesiredCapacity=$AutoScalingDesiredCapacity \
                                 --capabilities CAPABILITY_IAM CAPABILITY_NAMED_IAM --stack-name $StackName'

@@ -15,16 +15,6 @@ Parameters:
     Type: String
     Default: 069312102029.dkr.ecr.us-west-1.amazonaws.com/petclinic:latest
 
-  ContainerCPU:
-    Description: Container CPU reservation
-    Type: Number
-    Default: 256
-
-  ContainerMemory:
-    Description: Container memory reservation
-    Type: Number
-    Default: 325
-
   ContainerMinCapacity:
     Description: Container minimum capacity
     Type: Number
@@ -111,8 +101,6 @@ Resources:
       TemplateURL: https://s3-us-west-2.amazonaws.com/project-cloudformation-stack/ecscluster.yml
       Parameters:
         ContainerImage: !Ref ContainerImage
-        ContainerCPU: !Ref ContainerCPU
-        ContainerMemory: !Ref ContainerMemory
         ContainerMinCapacity: !Ref ContainerMinCapacity
         ContainerMaxCapacity: !Ref ContainerMaxCapacity
         ContainerDesiredCount: !Ref ContainerDesiredCount

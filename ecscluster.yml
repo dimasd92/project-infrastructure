@@ -34,16 +34,6 @@ Parameters:
     Type: String
     Default: 069312102029.dkr.ecr.us-west-1.amazonaws.com/petclinic:latest
 
-  ContainerCPU:
-    Description: Container CPU reservation
-    Type: Number
-    Default: 256
-
-  ContainerMemory:
-    Description: Container memory reservation
-    Type: Number
-    Default: 384
-
   ContainerMinCapacity:
     Description: Container minimum capacity
     Type: Number
@@ -315,10 +305,10 @@ Resources:
       ContainerDefinitions:
         - Name: petclinic
           Image: !Ref ContainerImage
-          Cpu: !Ref ContainerCPU
+          Cpu: 470
           PortMappings:
             - ContainerPort: 8080
-          Memory: !Ref ContainerMemory
+          Memory: 470
           MemoryReservation: 330
           Essential: true
           LogConfiguration:
@@ -349,7 +339,7 @@ Resources:
       Cluster: !Ref ECScluster
       DeploymentConfiguration:
         MaximumPercent: 200
-        MinimumHealthyPercent: 100
+        MinimumHealthyPercent: 50
       DesiredCount: !Ref ContainerDesiredCount
       LoadBalancers:
         - ContainerName: petclinic
@@ -384,7 +374,7 @@ Resources:
   MemoryReservationHighAlert:
     Type: AWS::CloudWatch::Alarm
     Properties:
-      EvaluationPeriods: 5
+      EvaluationPeriods: 3
       Statistic: Maximum
       Threshold: 80
       AlarmDescription: Alarm if CPU too high or metric disappears indicating instance is down
@@ -412,7 +402,7 @@ Resources:
   MemoryReservationLowAlert:
     Type: AWS::CloudWatch::Alarm
     Properties:
-      EvaluationPeriods: 5
+      EvaluationPeriods: 3
       Statistic: Average
       Threshold: 32
       AlarmDescription: Alarm if CPU too high or metric disappears indicating instance is down
@@ -430,7 +420,7 @@ Resources:
   RequestHighAlert1:
     Type: AWS::CloudWatch::Alarm
     Properties:
-      EvaluationPeriods: 5
+      EvaluationPeriods: 3
       Statistic: Sum
       Threshold: 10
       AlarmDescription: Alarm if CPU too high or metric disappears indicating instance is down
@@ -450,7 +440,7 @@ Resources:
   RequestHighAlert2:
     Type: AWS::CloudWatch::Alarm
     Properties:
-      EvaluationPeriods: 5
+      EvaluationPeriods: 3
       Statistic: Sum
       Threshold: 100
       AlarmDescription: Alarm if CPU too high or metric disappears indicating instance is down
