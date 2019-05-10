@@ -3,7 +3,13 @@ pipeline {
     stages {
         stage('Preparation') {
             steps {
-                checkout([$class: 'GitSCM', branches: [[name: '*/master']], doGenerateSubmoduleConfigurations: false, extensions: [], submoduleCfg: [], userRemoteConfigs: [[credentialsId: 'f5cad86a-f6f4-4046-a243-a10b31177dd6', url: 'https://github.com/dimasd92/project-infrastructure']]])
+                checkout([$class: 'GitSCM',
+                branches: [[name: '*/master']],
+                doGenerateSubmoduleConfigurations: false,
+                extensions: [],
+                submoduleCfg: [],
+                userRemoteConfigs: [[credentialsId: 'f5cad86a-f6f4-4046-a243-a10b31177dd6',
+                url: 'https://github.com/dimasd92/project-infrastructure']]])
             }
         }
         stage('Deploy templates to S3') {

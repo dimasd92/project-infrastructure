@@ -1,0 +1,12 @@
+node {
+
+   stage('Preparation') {
+      git credentialsId: 'f5cad86a-f6f4-4046-a243-a10b31177dd6', url: 'https://github.com/dimasd92/project-infrastructure'
+   }
+   stage('Deploy templates to S3') {
+      sh label: '', script: 'aws s3 cp ecscluster.yml s3://project-cloudformation-stack/ecscluster.yml'
+   }
+   stage('Build infrastructure') {
+         sh label: '', script: 'aws cloudformation deploy --template-file ecscluster.yml --parameter-overrides ContainerImage=069312102029.dkr.ecr.us-west-1.amazonaws.com/petclinic:${TAG} --capabilities CAPABILITY_IAM CAPABILITY_NAMED_IAM --stack-name $StackName'
+   }
+}
