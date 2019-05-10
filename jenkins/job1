@@ -1,35 +1,41 @@
-node {
-   stage('Preparation') {
-         slackSend baseUrl: 'https://petclinicproject.slack.com/services/hooks/jenkins-ci/', channel: '#builds', color: '#00FF00', message: "Building the app started. Version 2.0.${env.BUILD_NUMBER}", tokenCredentialId: '9a1a602e-1742-4b7a-aace-f25d67d77c45'
-         git 'https://github.com/dimasd92/spring-petclinic'
-         mvnHome = tool 'Maven'
-         }
-   stage('Test petclinic') {
-         sh "'${mvnHome}/bin/mvn' test"
-         slackSend baseUrl: 'https://petclinicproject.slack.com/services/hooks/jenkins-ci/', channel: '#builds', color: '#439FE0', message: "Tests passed successfully. v.2.0.${env.BUILD_NUMBER}", tokenCredentialId: '9a1a602e-1742-4b7a-aace-f25d67d77c45'
-   }
-   stage('Build petclinic app') {
-         sh "'${mvnHome}/bin/mvn' -Dmaven.test.skip=true package"
-         slackSend baseUrl: 'https://petclinicproject.slack.com/services/hooks/jenkins-ci/', channel: '#builds', color: '#439FE0', message: "Petclinic app created. v.2.0.${env.BUILD_NUMBER}", tokenCredentialId: '9a1a602e-1742-4b7a-aace-f25d67d77c45'
-   }
-   stage('Build docker image') {
-         sh label: '', script: 'aws s3 cp s3://project.petclinic-west1/tomcat-users.xml tomcat/tomcat-users.xml'
-         sh label: '', script: 'docker build -t petclinic .'
-         slackSend baseUrl: 'https://petclinicproject.slack.com/services/hooks/jenkins-ci/', channel: '#builds', color: '#439FE0', message: "Docker image created v.2.0.${env.BUILD_NUMBER}", tokenCredentialId: '9a1a602e-1742-4b7a-aace-f25d67d77c45'
-   }
-   stage('Deploy Docker image to ECR') {
-         sh label: '', script: '$(aws ecr get-login --no-include-email --region us-west-1)'
-         sh label: '', script: "docker tag petclinic:latest 069312102029.dkr.ecr.us-west-1.amazonaws.com/petclinic:v.2.0.${env.BUILD_NUMBER}"
-         sh label: '', script: "docker push 069312102029.dkr.ecr.us-west-1.amazonaws.com/petclinic:v.2.0.${env.BUILD_NUMBER}"
-         sh label: '', script: "docker tag petclinic:latest 069312102029.dkr.ecr.us-west-1.amazonaws.com/petclinic:latest"
-         sh label: '', script: "docker push 069312102029.dkr.ecr.us-west-1.amazonaws.com/petclinic:latest"
-         slackSend baseUrl: 'https://petclinicproject.slack.com/services/hooks/jenkins-ci/', channel: '#builds', color: '#439FE0', message: "Docker image deployed to the ECR. version 2.0.${env.BUILD_NUMBER}", tokenCredentialId: '9a1a602e-1742-4b7a-aace-f25d67d77c45'
-         }
-   stage('Tagging the build') {
-         withCredentials([usernamePassword(credentialsId: 'f5cad86a-f6f4-4046-a243-a10b31177dd6', usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD')]) {
-         sh "git tag -f v.2.0.${env.BUILD_NUMBER}"
-         sh 'git push https://$USERNAME:$PASSWORD@github.com/dimasd92/spring-petclinic --tags'
-         slackSend baseUrl: 'https://petclinicproject.slack.com/services/hooks/jenkins-ci/', channel: '#builds', color: '#00FF00', message: "Build tagged with version 2.0.${env.BUILD_NUMBER}", tokenCredentialId: '9a1a602e-1742-4b7a-aace-f25d67d77c45'
-         }
-   }
- }
+pipeline {
+    agent any
+    tools {
+        maven 'Maven'
+    }
+    stages {
+        stage('Preparation') {
+            steps {
+                checkout([$class: 'GitSCM',
+                branches: [[name: '*/master']],
+                doGenerateSubmoduleConfigurations: false,
+                extensions: [],
+                submoduleCfg: [],
+                userRemoteConfigs: [[credentialsId: 'f5cad86a-f6f4-4046-a243-a10b31177dd6',
+                url: 'https://github.com/dimasd92/spring-petclinic']]])
+            }
+        }
+        stage('Test with Cfn-linter') {
+            steps {
+                sh "'${mvnHome}/bin/mvn' test"
+            }
+        }
+        stage('Deploy templates to S3') {
+            steps {
+                sh "'${mvnHome}/bin/mvn' -Dmaven.test.skip=true package"
+            }
+        }
+        stage('Build the infrastructure') {
+            steps {
+                sh label: '', script: 'aws s3 cp s3://project.petclinic-west1/tomcat-users.xml tomcat/tomcat-users.xml'
+                sh label: '', script: 'docker build -t petclinic .'
+            }
+
+
+
+
+
+
+        }
+    }
+}
