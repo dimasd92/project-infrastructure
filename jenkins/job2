@@ -3,7 +3,12 @@ pipeline {
     stages {
         stage('Preparation') {
             steps {
-                git credentialsId: 'f5cad86a-f6f4-4046-a243-a10b31177dd6', url: 'https://github.com/dimasd92/project-infrastructure'
+                $class: 'GitSCM',
+                branches: scm.branches,
+                doGenerateSubmoduleConfigurations: false,
+                extensions: scm.extensions + [[$class: 'SubmoduleOption', disableSubmodules: false, recursiveSubmodules: true, reference: '', trackingSubmodules: false]],
+                submoduleCfg: [],
+                userRemoteConfigs: scm.userRemoteConfigs])
             }
         }
         stage('Deploy templates to S3') {
