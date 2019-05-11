@@ -1,13 +1,13 @@
 pipeline {
     agent any
     environment {
-    StackName1 = ${aws cloudformation list-stacks --output json | grep ECS | head -1 | awk -F "/" '{print $2}'}
+    StackName = sh(script: 'aws cloudformation list-stacks --output json | grep ECS | head -1', , returnStdout: true).trim()
     }
 
     stages {
-
         stage('Preparation1') {
             steps {
+                print(env.StackName)
                 sh label: '', script: "echo $StackName"
                 sh '''#!/bin/bash
                     aws cloudformation list-stacks --output json | grep ECS | head -1 | awk -F "/" '{print $2}'
