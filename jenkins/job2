@@ -5,8 +5,8 @@ pipeline {
         stage('Preparation1') {
             steps {
                 sh """#!/bin/bash
-                    sh label: '', script: 'aws cloudformation list-stacks --output json | grep ECS | head -1 | awk -F "/" {print $2}'
-                   """            
+                    sh label: '', script: 'aws cloudformation list-stacks --output json | grep ECS | head -1 | awk -F "/" '{print $2}'
+                   """
             }
         }
         stage('Preparation') {
