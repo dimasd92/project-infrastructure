@@ -25,10 +25,10 @@ pipeline {
             }
         }
         stage('Build infrastructure') {
-            environment {
-                StackName = sh("cat test")
-            }
             steps {
+                script {
+                    StackName = sh(returnStdout: true, script: 'cat test')
+                }
                 sh label: '', script: 'echo env.StackName'
                 sh label: '', script: 'aws cloudformation deploy --template-file ecscluster.yml --parameter-overrides ContainerImage=069312102029.dkr.ecr.us-west-1.amazonaws.com/petclinic:${TAG} --capabilities CAPABILITY_IAM CAPABILITY_NAMED_IAM --stack-name env.StackName'
             }
