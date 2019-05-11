@@ -1,7 +1,7 @@
 pipeline {
     agent any
     environment {
-    StackName = sh(script: 'aws cloudformation list-stacks --output json | grep ECS | head -1', , returnStdout: true).trim()
+    StackName = sh(script: `aws cloudformation list-stacks --output json | grep ECS | head -1`, , returnStdout: true).trim()
     }
 
     stages {
