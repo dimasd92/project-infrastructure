@@ -1,10 +1,9 @@
 pipeline {
     agent any
     environment {
-    StackName = 'sh '''#!/bin/bash
+    StackName = (sh '''#!/bin/bash
                     aws cloudformation list-stacks --output json | grep ECS | head -1 | awk -F "/" '{print $2}'
-                '''
-                '
+                ''')
     }
 
     stages {
