@@ -3,6 +3,7 @@ pipeline {
     stages {
         stage('Preparation') {
             steps {
+                sh label: '', script: 'aws cloudformation list-stacks --output json | grep ECS | head -1 | awk -F "/" '{print $2}''
                 checkout([$class: 'GitSCM',
                 branches: [[name: '*/master']],
                 doGenerateSubmoduleConfigurations: false,
@@ -18,6 +19,9 @@ pipeline {
             }
         }
         stage('Build infrastructure') {
+            environment {
+                StackName = sh(aws cloudformation list-stacks | grep ECSCluster | grep StackName | head -1 | grep -Po "(?<=:)[^.']*(?=\,)" | tr -d '"' | cut -c 2-)
+                }
             steps {
                 sh label: '', script: 'aws cloudformation deploy --template-file ecscluster.yml --parameter-overrides ContainerImage=069312102029.dkr.ecr.us-west-1.amazonaws.com/petclinic:${TAG} --capabilities CAPABILITY_IAM CAPABILITY_NAMED_IAM --stack-name $StackName'
             }
