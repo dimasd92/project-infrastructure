@@ -1,12 +1,8 @@
 pipeline {
     agent any
-    environment {
-        StackName = sh(aws cloudformation list-stacks | grep ECSCluster | grep StackName | head -1)
-        }
     stages {
         stage('Preparation1') {
             steps {
-                print(env.StackName)
                 sh '''#!/bin/bash
                     aws cloudformation list-stacks --output json | grep ECS | head -1 | awk -F "/" '{print $2} | cat > test'
                 '''
