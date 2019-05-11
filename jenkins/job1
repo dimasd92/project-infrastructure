@@ -12,6 +12,14 @@ pipeline {
                   userRemoteConfigs: [[credentialsId: 'f5cad86a-f6f4-4046-a243-a10b31177dd6',
                   url: 'https://github.com/dimasd92/spring-petclinic']]])
             }
+            post {
+                success {
+                    slackSend baseUrl: 'https://petclinicproject.slack.com/services/hooks/jenkins-ci/', channel: '#builds', color: '#00FF00', message: "Building the app finished successfully. Version 2.0.${env.BUILD_NUMBER}", tokenCredentialId: '9a1a602e-1742-4b7a-aace-f25d67d77c45'
+                }
+                failure {
+                    slackSend baseUrl: 'https://petclinicproject.slack.com/services/hooks/jenkins-ci/', channel: '#builds', color: '#00FF00', message: "Building the app failed. Version 2.0.${env.BUILD_NUMBER}", tokenCredentialId: '9a1a602e-1742-4b7a-aace-f25d67d77c45'
+                }
+            }
         }
         stage('Test petclinic app') {
             steps {
