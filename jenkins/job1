@@ -10,7 +10,7 @@ pipeline {
                   extensions: [],
                   submoduleCfg: [],
                   userRemoteConfigs: [[credentialsId: 'f5cad86a-f6f4-4046-a243-a10b31177dd6',
-                  url: 'https://github.com/dimasd92/spring-petclinic']]])
+                  url: 'https://github.com/dimasd92sdsd/spring-petclinic']]])
             }
             post {
                 success {
