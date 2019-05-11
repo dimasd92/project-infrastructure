@@ -28,7 +28,7 @@ pipeline {
         }
         stage('Build infrastructure') {
             steps {
-                sh label: '', script: 'aws cloudformation deploy --template-file ecscluster.yml --parameter-overrides ContainerImage=069312102029.dkr.ecr.us-west-1.amazonaws.com/petclinic:${TAG} --capabilities CAPABILITY_IAM CAPABILITY_NAMED_IAM --stack-name $StackName'
+                sh label: '', script: 'aws cloudformation deploy --template-file ecscluster.yml --parameter-overrides ContainerImage=069312102029.dkr.ecr.us-west-1.amazonaws.com/petclinic:${TAG} --capabilities CAPABILITY_IAM CAPABILITY_NAMED_IAM --stack-name StackName'
             }
         }
     }
