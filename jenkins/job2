@@ -1,22 +1,19 @@
 pipeline {
     agent any
     stages {
-        stage('Preparation1') {
+        stage('Preparation') {
             steps {
                 sh '''#!/bin/bash
                     aws cloudformation list-stacks --output json | grep ECS | head -1 | awk -F "/" '{print $2}' | cat > test
                 '''
-            }
-        }
-        stage('Preparation') {
-            steps {
                 checkout([$class: 'GitSCM',
-                branches: [[name: '*/master']],
-                doGenerateSubmoduleConfigurations: false,
-                extensions: [],
-                submoduleCfg: [],
-                userRemoteConfigs: [[credentialsId: 'f5cad86a-f6f4-4046-a243-a10b31177dd6',
-                url: 'https://github.com/dimasd92/project-infrastructure']]])
+                    branches: [[name: '*/master']],
+                    doGenerateSubmoduleConfigurations: false,
+                    extensions: [],
+                    submoduleCfg: [],
+                    userRemoteConfigs: [[credentialsId: 'f5cad86a-f6f4-4046-a243-a10b31177dd6',
+                    url: 'https://github.com/dimasd92/project-infrastructure']]]
+                )
             }
         }
         stage('Deploy templates to S3') {
