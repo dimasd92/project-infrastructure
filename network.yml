@@ -168,7 +168,7 @@ Resources:
   PublicSubnetSecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
-      GroupDescription: Security group for private network
+      GroupDescription: Security group for public network
       VpcId: !Ref VPC
       SecurityGroupIngress:
       - IpProtocol: tcp
